@@ -26,6 +26,15 @@ const char TOUCH_DOWN[] = "Down: ";
 const char TOUCH_LEFT[] = "Left: ";
 
 // Communications
+const char TELECOMMAND_RECEIVED[] = "Received message from ground. ";
+const char TOPIC[] = "Topic: ";
+const char DATA[] = "Data: ";
+const char TELEMETRY_TOPIC[] = "Ivan's Satellite Telemetry Data";
+const char TELECOMMAND_TOPIC[] = "cadse/2023/broadcast";
+const char TELECOMMAND_PROCESSING[] = "Processing telecommand for mode: ";
+const char UNKNOWN_MODE[] = "Unknown mode received: ";
+const char STORE_DEFAULT_MODE_TC[] = "New mode received: ";
+
 // Wifi
 const char INITIALIZE_WIFI[] = "Wifi initialization: ";
 const char CONNECTION_COMPLETE[] = "Connection complete!";

@@ -9,14 +9,13 @@
 #include <RadioLib.h>
 #include <esp_wpa2.h>
 #include <ArduinoJson.h>
-#include "secrets.h"
 #include "Strings.h"
+#include "arduino_secrets.h"
+//#include "my_secrets.h"
 
-// ----- Housekeeping -----
+// ----- Telemetry & Telecommand-----
 extern volatile bool sendTelemetry;
-
-// ----- LoRa -----
-static const int loraFrequency = 868.0, loraCSPin = 38, loraRSTPin = 48, loraIrqPin = 47;
+extern String receivedPayload; 
 extern volatile bool receivedFlag; 
 
 class ComsManager {
@@ -28,8 +27,8 @@ public:
     int getWiFiRSSI(bool isEduroam = false);
     float getLoRaRSSI();
     float getLoRaSNR();
-    void SerialWifiComunication();
-    String receivePackage();
+    void serialWifiComunication();
+    String receivePackageUsignLora();
 };
 
 extern ComsManager comsManager;

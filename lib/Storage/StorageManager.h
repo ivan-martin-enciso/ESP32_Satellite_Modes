@@ -19,6 +19,9 @@ public:
     void initializeEEPROM();
     void storeInt8Data(int address, const uint8_t &data);
     void storeInt16Data(int address, const uint16_t &data);
+    void storeDefaultMode(uint8_t defaultMode);
+    void storeTemperatureDefaultValues(uint8_t threshold1, uint8_t threshold2);
+    void storeLdrDefaultValues(uint16_t threshold1, uint16_t threshold2, uint16_t threshold3);
     uint8_t readInt8Data(int address);
     uint16_t readInt16Data(int address);
     void setDefaultValues();

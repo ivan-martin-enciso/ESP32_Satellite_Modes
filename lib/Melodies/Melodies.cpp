@@ -9,6 +9,7 @@ void play_melody(const int *melody, int array_length, int buzzer_channel){
 
   // iterate over the melody
   for(unsigned int note = 1; note < array_length / sizeof(int); note += 2) {
+    handleCommunications();
     if(modeChanged()) return;
     // calculate the duration of each note
     int noteDuration = 0;

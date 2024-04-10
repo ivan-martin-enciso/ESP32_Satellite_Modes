@@ -44,11 +44,5 @@ void loop() {
   if (currentMode >= 0 && currentMode < sizeof(modeFunctions) / sizeof(modeFunctions[0])) {
     modeFunctions[currentMode]();
   }
-  if(sendTelemetry){
-    String telemetryData = collectHousekeepingData();
-    comsManager.sendTelemetryData(telemetryData);
-  }
-  if(receivedFlag) {
-    String receivedCommand = comsManager.receivePackage();
-  }
+  handleCommunications();
 }

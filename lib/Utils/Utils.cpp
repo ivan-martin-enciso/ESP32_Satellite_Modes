@@ -29,6 +29,7 @@ Buzzer buzzer;
 StorageManager storageManager;
 ServoController servoController;
 Ldr ldr;
+TelecommandsManager telecommandsManager;
 
 // Timer settings
 const int timerInterval = 1000000; // Interval in milliseconds
@@ -98,7 +99,6 @@ void handleMode3Timer() {
     currentServoStep += servoStepValue;
   }
 }
-
 
 void handleHousekeepingData(){
   sendTelemetry = true;
@@ -227,8 +227,9 @@ String getAcceleration(){
 }
 
 String getServoPosition(){
-  //Serial.println(servoController.getServoPosition());
-  return String(map(servoController.getServoPosition(), 179, -1, -90, 90)) + DEGREES;
+  int currentPosition = servoController.getServoPosition();
+  currentPosition = mode3RemainingTime == 0 ? 179 : currentPosition; 
+  return String(map(currentPosition, 179, -1, -90, 90)) + DEGREES;
 }
 
 String getTouchpadsValues(){
@@ -243,6 +244,8 @@ String getTouchpadsValues(){
          TOUCH_LEFT + String(left) + COMMA +
          TOUCH_RIGHT + String(right);
 }
+
+// Communictions
 
 String collectHousekeepingData() {
   JsonDocument doc;  
@@ -273,5 +276,20 @@ String collectHousekeepingData() {
   return jsonData; 
 } 
 
+void handleCommunications(){
+  if(sendTelemetry){
+    String telemetryData = collectHousekeepingData();
+    comsManager.sendTelemetryData(telemetryData);
+  }
+  if(receivedFlag){
+    int receivedMode = telecommandsManager.processTelecommand(receivedPayload, currentMode);
+    if ( receivedMode >= 0 ){
+      fetchInitialValuesFromMemory();
+      nextMode = receivedMode != currentMode ? receivedMode : currentMode;
+      if(defaultMode != nextDefaultMode && receivedMode == -2) defaultMode = nextDefaultMode;
+    }
+    receivedFlag = false; 
+  }
+}
 
   

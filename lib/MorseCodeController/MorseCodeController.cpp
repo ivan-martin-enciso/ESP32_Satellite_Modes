@@ -15,6 +15,11 @@ const char MorseCodeController::letters[] = {
     '5', '6', '7', '8', '9', '0', ',', '?'
 };
 
+bool hasModeChanged(){
+  handleCommunications();
+  return modeChanged(); 
+}
+
 MorseCodeController::MorseCodeController() {}
 
 MorseCodeController::~MorseCodeController() {}
@@ -22,7 +27,7 @@ MorseCodeController::~MorseCodeController() {}
 void MorseCodeController::translateToMorseCode(String input) {
   input.toUpperCase();
   for (int i = 0; i < input.length(); i++) {
-    if(modeChanged()) return;
+    if(hasModeChanged()) return;
     char letter = input.charAt(i);
     int index = findLetterIndex(letter);
     if (index != -1) {
@@ -38,7 +43,7 @@ void MorseCodeController::translateToMorseCode(String input) {
 
 int MorseCodeController::findLetterIndex(char letter) {
   for (int i = 0; i < (sizeof(letters) / sizeof(letters[0])); i++) {
-    if(modeChanged()) break;
+    if(hasModeChanged()) break;
     if (letter == letters[i]) {
       return i;
     }
@@ -48,7 +53,7 @@ int MorseCodeController::findLetterIndex(char letter) {
 
 void MorseCodeController::playMorse(String morseCode) {
   for (int i = 0; i < morseCode.length(); i++) {
-    if(modeChanged()) return;
+    if(hasModeChanged()) return;
     if (morseCode.charAt(i) == '.') {
       dot();
     } else {
@@ -70,17 +75,17 @@ void MorseCodeController::wordPause() {
 
 void MorseCodeController::dot(){
   lcdDisplay.fillScreen();   
-  //buzzer.buzzerSoundOn(); 
+  buzzer.buzzerSoundOn(); 
   symbolPause();            
   lcdDisplay.clearDisplay();      
-  //buzzer.buzzerSoundOff(); 
+  buzzer.buzzerSoundOff(); 
   symbolPause();                
 }
 void MorseCodeController::dash(){
   lcdDisplay.fillScreen();   
-  //buzzer.buzzerSoundOn();   
+  buzzer.buzzerSoundOn();   
   letterPause();               
   lcdDisplay.clearDisplay();      
-  //buzzer.buzzerSoundOff();    
+  buzzer.buzzerSoundOff();    
   letterPause();               
 }

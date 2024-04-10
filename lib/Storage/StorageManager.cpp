@@ -47,6 +47,21 @@ uint16_t StorageManager::readInt16Data(int address) {
     return data;
 }
 
+void StorageManager::storeDefaultMode(uint8_t defaultMode){
+    storeInt8Data(defaultModeAddress, defaultMode);
+}
+
+void StorageManager::storeTemperatureDefaultValues(uint8_t threshold1, uint8_t threshold2){
+    storeInt8Data(defaultTemperatureLowerThresholdAddress, threshold1);
+    storeInt8Data(defaultTemperatureUpperThresholdAddress, threshold2);
+}
+
+void StorageManager::storeLdrDefaultValues(uint16_t threshold1, uint16_t threshold2, uint16_t threshold3){
+    storeInt16Data(defaultLdrThreshold1Address, threshold1);
+    storeInt16Data(defaultLdrThreshold2Address, threshold2);
+    storeInt16Data(defaultLdrThreshold3Address, threshold3);
+}
+
 void StorageManager::setDefaultValues(){
     uint8_t defaultMode = 3;
     uint16_t defaultLdrThreshold1 = 1000;
@@ -55,12 +70,9 @@ void StorageManager::setDefaultValues(){
     uint8_t defaultTemperatureLowerThreshold = 23;
     uint8_t defaultTemperatureUpperThreshold = 35;
 
-    storeInt8Data(defaultModeAddress, defaultMode);
-    storeInt16Data(defaultLdrThreshold1Address, defaultLdrThreshold1);
-    storeInt16Data(defaultLdrThreshold2Address, defaultLdrThreshold2);
-    storeInt16Data(defaultLdrThreshold3Address, defaultLdrThreshold3);
-    storeInt8Data(defaultTemperatureLowerThresholdAddress, defaultTemperatureLowerThreshold);
-    storeInt8Data(defaultTemperatureUpperThresholdAddress, defaultTemperatureUpperThreshold);
+    storeDefaultMode(defaultMode);
+    storeLdrDefaultValues(defaultLdrThreshold1, defaultLdrThreshold2, defaultLdrThreshold3);
+    storeTemperatureDefaultValues(defaultTemperatureLowerThreshold, defaultTemperatureUpperThreshold);
 }
 
 void StorageManager::clearEEPROM() {

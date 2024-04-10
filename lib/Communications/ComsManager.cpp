@@ -3,23 +3,27 @@
 // Definitions 
 
 // ----- Wifi -----
-const String wifiSSID             = SECRET_OTHER_WIFI_SSID;
-const char wifiPassword[]         = SECRET_OTHER_WIFI_PASSWORD;
-const String wifiEduroamSSID      = SECRET_EDUROAM_WIFI_SSID;
-const char wifiEduroamPassword[]  = SECRET_EDUROAM_WIFI_PASSWORD;
-const char wifiAnonymousId[]      = SECRET_EDUROAM_WIFI_ANONYMOUSID;
-const char wifiEduroamId[]        = SECRET_EDUROAM_WIFI_EDUROAMID;
+const String wifiSSID        = SECRET_WIFI_SSID;
+const char wifiPassword[]    = SECRET_WIFI_PASSWORD;
+const char wifiAnonymousId[] = SECRET_WIFI_ANONYMOUSID;
+const char wifiEduroamId[]   = SECRET_WIFI_EDUROAMID;
 const int serialPort              = 23; 
 const int maximumServerClients    = 1;
-
+WiFiServer server(serialPort);
+WiFiClient serverClients[maximumServerClients];
+WiFiClientSecure wifiClient;
 // ----- MQTT -----
-const char   mqttBroker[]         = SECRET_MQTT_BROKER;
-const  int   mqttPort             = SECRET_MQTT_PORT;
-const char   mqttUser[]           = SECRET_MQTT_USER;
-const char   mqttPassword[]       = SECRET_MQTT_PASSWORD;
-const String mqttPrefix           = SECRET_MQTT_PREFIX;
-const int    mqttYear             = SECRET_MQTT_YEAR;
-const byte   mqttBoardId          = SECRET_MQTT_BOARDID;
+const char   mqttBroker[]    = SECRET_MQTT_BROKER;
+const  int   mqttPort        = SECRET_MQTT_PORT;
+const char   mqttUser[]      = SECRET_MQTT_USER;
+const char   mqttPassword[]  = SECRET_MQTT_PASSWORD;
+const String mqttPrefix      = SECRET_MQTT_PREFIX;
+const int    mqttYear        = SECRET_MQTT_YEAR;
+const byte   mqttBoardId     = SECRET_MQTT_BOARDID;
+String mqttPublish;  
+String mqttSubscribe; 
+String mqttTopic;
+PubSubClient mqttClient(wifiClient);
 
 // Encryption using https://letsencrypt.org/certs/lets-encrypt-r3.pem
 const char tlsPublicCertificate[] = ("\
@@ -53,14 +57,10 @@ HlUjr8gRsI3qfJOQFy/9rKIJR0Y/8Omwt/8oTWgy1mdeHmmjk7j1nYsvC9JSQ6Zv\n\
 MldlTTKB3zhThV1+XWYp6rjd5JW1zbVWEkLNxE7GJThEUG3szgBVGP7pSWTUTsqX\n\
 nLRbwHOoq7hHwg==\n\
 -----END CERTIFICATE-----\n");
-String mqttTopic;
-String mqttSubscribe; // Topic telecommand
-WiFiServer server(serialPort);
-WiFiClient serverClients[maximumServerClients];
-WiFiClientSecure wifiClient;
-PubSubClient mqttClient(wifiClient);
 
 
+// ----- LoRa -----
+static const int loraFrequency = 868.0, loraCSPin = 38, loraRSTPin = 48, loraIrqPin = 47;
 SX1276 radioClient = new Module(loraCSPin, loraIrqPin, loraRSTPin, RADIOLIB_NC); // GPIO Pins are not connected on CADSE board!
 volatile bool receivedFlag = false; // flag to indicate that a packet was received
 
@@ -73,8 +73,9 @@ const size_t incomingDatabufferSize = 128;
 char incomingDataBuffer[incomingDatabufferSize];
 int incomingDataIndex = 0;
 
-// ----- Housekeeping -----
+// ----- Telemetry & Telecommand-----
 volatile bool sendTelemetry;
+ String receivedPayload; 
 
 ComsManager::ComsManager() {}
 
@@ -112,14 +113,14 @@ void initializeEduroamWifi() {
   delay(10);
   Serial.println(INITIALIZE_WIFI);
   Serial.print(CONNECTING_TO);
-  Serial.println(wifiEduroamSSID);
+  Serial.println(wifiSSID);
   WiFi.disconnect(true);  
   WiFi.mode(WIFI_STA); 
   esp_wifi_sta_wpa2_ent_set_identity((uint8_t *)wifiAnonymousId, strlen(wifiAnonymousId)); 
   esp_wifi_sta_wpa2_ent_set_username((uint8_t *)wifiEduroamId, strlen(wifiEduroamId)); 
-  esp_wifi_sta_wpa2_ent_set_password((uint8_t *)wifiEduroamPassword, strlen(wifiEduroamPassword)); 
+  esp_wifi_sta_wpa2_ent_set_password((uint8_t *)wifiPassword, strlen(wifiPassword)); 
   esp_wifi_sta_wpa2_ent_enable(); 
-  WiFi.begin(wifiEduroamSSID.c_str());
+  WiFi.begin(wifiSSID.c_str());
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
@@ -168,13 +169,12 @@ void initializeLora() {
 /*
  * Callback function for MQTT subscription handler
  */
-void handleMQTT(char* topic, byte *payload, unsigned int length) {
-    Serial.println("Receiving message from ground...");
-    Serial.print("      COM CHANNEL: ");
-    Serial.println(topic);
-    Serial.print("      UPLINK DATA: ");
-    Serial.write(payload, length); // TODO add example converting payload to String
-    Serial.println();
+void receivePackageUsignMqtt(char* topic, byte *payload, unsigned int length) {
+    char str[length + 1];
+    memcpy(str, payload, length + 1);
+    str[length + 1] = '\0';
+    receivedPayload = String(str);
+    receivedFlag = true; 
 }
 /*
  * Initialize MQTT connection
@@ -209,14 +209,14 @@ void initializeMQTT() {
 
 void ComsManager::initializeComs(bool isEduroam) {
     // Generate board-specific MQTT topics using the pattern [prefix]/[year]/[ID]/[variable]
-    mqttTopic = mqttPrefix + "/" + String(mqttYear) + "/" + String(mqttBoardId) + "/";
-    mqttSubscribe = mqttTopic + "tc"; // Topic telecommand
+    mqttTopic = mqttPrefix + "/" + String(mqttYear) + "/" + String(mqttBoardId) + "/" + TELEMETRY_TOPIC;
+    mqttSubscribe = TELECOMMAND_TOPIC; // Topic telecommand
     if(isEduroam){ initializeEduroamWifi(); }
     else{ initializeWifi(); }
 
     initializeLora();
     mqttClient.setServer(mqttBroker, mqttPort);
-    mqttClient.setCallback(handleMQTT);
+    mqttClient.setCallback(receivePackageUsignMqtt);
     initializeMQTT(); 
 }
 
@@ -237,7 +237,7 @@ float ComsManager::getLoRaSNR() {
     return radioClient.getSNR();
 }
 
-void ComsManager::SerialWifiComunication(){
+void ComsManager::serialWifiComunication(){
     uint8_t i;
     if (WiFi.status() == WL_CONNECTED){
         if(server.hasClient()) {
@@ -326,25 +326,24 @@ void ComsManager::sendTelemetryData(String telemetryJson){
 
         // Extract keys from the JSON object
         for (JsonPair keyValue : doc.as<JsonObject>()) {
-            String mqttPublish = mqttTopic + "Ivan's Satellite Telemetry Data"; // Topic telemetry
-            const char* key = keyValue.key().c_str(); // Get the key as const char*
-            mqttPublish.concat("/");
+            String mqttPublish = mqttTopic + "/"; 
+            const char* key = keyValue.key().c_str(); 
             mqttPublish.concat(key);
             String jsonData = String(keyValue.value().as<String>());
             
             // Publish telemetry data on the constructed MQTT topic
             mqttClient.publish(mqttPublish.c_str(), jsonData.c_str());
-            //Serial.print(mqttPublish);
-            //Serial.println(jsonData);
         }
 
         sendTelemetry = false;
     }
 }
 
-String ComsManager::receivePackage(){
+
+String ComsManager::receivePackageUsignLora(){
     receivedFlag = false;
     // you can read received data as an Arduino String
+    Serial.println("receivedFlag");
     String receivedCommand;
     int state = radioClient.readData(receivedCommand);
 

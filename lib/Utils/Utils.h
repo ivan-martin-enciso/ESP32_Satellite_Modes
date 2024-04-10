@@ -17,6 +17,7 @@
 #include "Servo.h"
 #include "Ldr.h"
 #include <esp32-hal-timer.h>
+#include "TelecommandsManager.h"
 
 // ----- Satellite modes -----
 extern int currentMode;   
@@ -26,6 +27,9 @@ void handleModeChange();
 
 // ----- Board Initialization -----
 void initializeBoard();
+
+// ----- Communications -----
+void handleCommunications();
 
 // ----- Touch Pads -----
 static const byte touchDownPin = 1;
@@ -53,8 +57,5 @@ extern bool volatile startTimer;
 extern volatile unsigned long mode3RemainingTime;
 extern volatile int currentServoStep;
 extern volatile int servoStepValue;
-
-// ----- Housekeeping -----
-String collectHousekeepingData();
 
 #endif
