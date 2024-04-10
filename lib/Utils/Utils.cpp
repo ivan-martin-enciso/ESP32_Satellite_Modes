@@ -57,6 +57,7 @@ void resetMode3(){
   mode3RemainingTime = 1;
   startTimer = false;
   currentServoStep = initialServoPosition;
+  servoController.setServoPosition(initialServoPosition);
 }
 
 void increaseModeNumber(){
@@ -130,10 +131,10 @@ void handleModeChange(){
   Serial.println(currentModeString);                                 // Print in Serial
 }
 
-void fetchInitialValuesFromMemory(){
+void fetchInitialValuesFromMemory(bool fetchDefaultMode = true){
   try{
     defaultMode = storageManager.readInt8Data(defaultModeAddress);
-    nextMode = defaultMode;
+    if(fetchDefaultMode) nextMode = defaultMode;
     ldrThreshold1 = storageManager.readInt16Data(defaultLdrThreshold1Address);
     ldrThreshold2 = storageManager.readInt16Data(defaultLdrThreshold2Address);
     ldrThreshold3 = storageManager.readInt16Data(defaultLdrThreshold3Address);
@@ -191,7 +192,7 @@ void initializeBoard() {
     bme280.initializeBME280();
     lcdDisplay.updateProgressBar(70);                      // Update progress bar with 95%
     // Initialize communications
-    comsManager.initializeComs(true);
+    comsManager.initializeComs(false);
     lcdDisplay.updateProgressBar(80);                      // Update progress bar with 100%
     // Initialize timer
     initializeHousekeepingTimer();  
@@ -260,7 +261,7 @@ String collectHousekeepingData() {
   doc["Humidity"] = String(bme280.getHumidity(), 1) + PERCENTAGE;
   doc["Pressure"] = String(bme280.getPressure(), 1) + PASCALS;
   doc["Altitude"] = String(bme280.getAltitude(), 1) + METERS;
-  doc["WiFi RSSI"] = String(comsManager.getWiFiRSSI(true)) + DB;
+  doc["WiFi RSSI"] = String(comsManager.getWiFiRSSI(true), 1) + DB;
   doc["LoRA RSSI"] = String(comsManager.getLoRaRSSI(), 1) + DB;
   doc["LoRA SNR"] = String(comsManager.getLoRaSNR(), 1) + DB;
   doc["Light intensity"] = String(ldr.readLdr());
@@ -283,10 +284,20 @@ void handleCommunications(){
   }
   if(receivedFlag){
     int receivedMode = telecommandsManager.processTelecommand(receivedPayload, currentMode);
-    if ( receivedMode >= 0 ){
-      fetchInitialValuesFromMemory();
-      nextMode = receivedMode != currentMode ? receivedMode : currentMode;
-      if(defaultMode != nextDefaultMode && receivedMode == -2) defaultMode = nextDefaultMode;
+    Serial.println(receivedMode);
+    switch(receivedMode){
+      case -1:
+        break;
+      case -2:
+        if(defaultMode != nextDefaultMode)  defaultMode = nextDefaultMode;
+        break;
+      case -3:
+        fetchInitialValuesFromMemory(false);
+        break;
+      default:
+        if(currentMode == 3)  resetMode3();
+        nextMode = receivedMode != currentMode ? receivedMode : currentMode;
+        break;
     }
     receivedFlag = false; 
   }

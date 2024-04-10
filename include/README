@@ -37,3 +37,26 @@ Read more about using header files in official GCC documentation:
 * Computed Includes
 
 https://gcc.gnu.org/onlinedocs/cpp/Header-Files.html
+
+For Telecommands:
+
+Set Default mode in persistent memory:
+{
+  "type": "setDefaultMode",
+  "cadse_id": 16,
+  "mode": 0
+}
+
+Change between modes and set thresholds:
+{
+  "type": "telecommand",
+  "cadse_id": 16,
+  "mode": 1,
+  "data":{
+    "tempLower":15,
+    "tempUpper":40,
+    "defLdrT1":1100,
+    "defLdrT2":2100,
+    "defLdrT3":3100
+  }
+}

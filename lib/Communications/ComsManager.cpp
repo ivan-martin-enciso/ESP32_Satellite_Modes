@@ -220,7 +220,7 @@ void ComsManager::initializeComs(bool isEduroam) {
     initializeMQTT(); 
 }
 
-int ComsManager::getWiFiRSSI(bool isEduroam) {
+float ComsManager::getWiFiRSSI(bool isEduroam) {
     if (WiFi.status() == WL_CONNECTED){
         return WiFi.RSSI();
     }

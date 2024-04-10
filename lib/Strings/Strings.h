@@ -33,7 +33,7 @@ const char TELEMETRY_TOPIC[] = "Ivan's Satellite Telemetry Data";
 const char TELECOMMAND_TOPIC[] = "cadse/2023/broadcast";
 const char TELECOMMAND_PROCESSING[] = "Processing telecommand for mode: ";
 const char UNKNOWN_MODE[] = "Unknown mode received: ";
-const char STORE_DEFAULT_MODE_TC[] = "New mode received: ";
+const char STORE_DEFAULT_MODE_TC[] = "New default mode received: ";
 
 // Wifi
 const char INITIALIZE_WIFI[] = "Wifi initialization: ";

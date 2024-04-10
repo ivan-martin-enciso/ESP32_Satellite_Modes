@@ -24,36 +24,35 @@ int TelecommandsManager::processTelecommand(String payload, int currentMode) {
 
     // Extract values from the JSON document
     int cadse_id = doc["cadse_id"];
+    String type = doc["type"];
+
     if (cadse_id == SECRET_MQTT_BOARDID) {
         Serial.print(F("Telecommand received on topic: "));
         Serial.println(TELECOMMAND_TOPIC);
 
-        if(doc.containsKey("data") && doc["data"].containsKey("setDefaultMode")){
-            int newDefaultMode = doc["data"]["setDefaultMode"];
-            if(!isModeInRange(newDefaultMode)){
-                Serial.println(UNKNOWN_MODE + String(newDefaultMode));
-                return -1;
-            }
-            Serial.println(STORE_DEFAULT_MODE_TC + String(newDefaultMode));
-            storageManager.storeDefaultMode(newDefaultMode);
-            nextDefaultMode = newDefaultMode;
-            return -2;
-        }
-
         int mode = doc["mode"];
-
         if(!isModeInRange(mode)){
             Serial.println(UNKNOWN_MODE + String(mode));
             return -1;
         }
 
-        if(mode == currentMode){
-            JsonObject data = doc["data"];
-            Serial.println(TELECOMMAND_PROCESSING + String(mode));
-            (this->*telecommandFunction[mode])(data); 
+        if(type.equals("setDefaultMode")){
+            int newDefaultMode = mode;
+            Serial.println(STORE_DEFAULT_MODE_TC + String(newDefaultMode));
+            storageManager.storeDefaultMode(newDefaultMode);
+            nextDefaultMode = newDefaultMode;
+            return -2;
         }
-        else{
-            buzzer.beep(mode, 100);
+        if(type.equals("telecommand")){
+            if(mode == currentMode){
+                JsonObject data = doc["data"];
+                Serial.println(TELECOMMAND_PROCESSING + String(mode));
+                (this->*telecommandFunction[mode])(data);
+                return -3; 
+            }
+            else{
+                buzzer.beep(mode, 100);
+            }
         }
         return mode;
     }

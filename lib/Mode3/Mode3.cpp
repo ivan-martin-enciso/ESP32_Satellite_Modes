@@ -9,7 +9,7 @@ void handleEndOfTimer(){
   servoController.setServoPosition(finalServoPosition);
   Serial.println(TIMER_DONE);
   lcdDisplay.printInDisplay(TIMER_DONE, 10);
-  play_melody(the_lick, sizeof(the_lick), buzzerChannel);
+  play_melody(cantina_band, sizeof(cantina_band), buzzerChannel);
   mode3Time = 10;
   mode3RemainingTime = 1;
   startTimer = false;
@@ -52,7 +52,6 @@ void mode3(){
   try{
     delay(100);
     if( modeChanged() ){
-      servoController.setServoPosition(initialServoPosition);
       return;
     }
     if(startTimer){
