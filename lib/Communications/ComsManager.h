@@ -14,7 +14,6 @@
 
 // ----- Housekeeping -----
 extern volatile bool sendTelemetry;
-extern volatile int wifiRSSI;
 
 // ----- LoRa -----
 static const int loraFrequency = 868.0, loraCSPin = 38, loraRSTPin = 48, loraIrqPin = 47;
@@ -26,10 +25,11 @@ public:
     ~ComsManager();
     void initializeComs(bool isEduroam = false);
     void sendTelemetryData(String telemetryJson);
-    void getWiFiRSSI();
+    int getWiFiRSSI(bool isEduroam = false);
     float getLoRaRSSI();
     float getLoRaSNR();
-    void handleWifi();
+    void SerialWifiComunication();
+    String receivePackage();
 };
 
 extern ComsManager comsManager;

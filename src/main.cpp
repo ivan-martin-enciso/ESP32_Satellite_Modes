@@ -19,8 +19,7 @@
 #include <Mode3.h>
 #include <Mode4.h>
 #include <Mode5.h>
-unsigned long startTime = 0;  // Variable to store start time
-unsigned long endTime = 0;    // Variable to store end time
+
 typedef void (*ModeFunction)();
 ModeFunction modeFunctions[] = {mode0, mode1, mode2, mode3, mode4, mode5};
 
@@ -45,15 +44,11 @@ void loop() {
   if (currentMode >= 0 && currentMode < sizeof(modeFunctions) / sizeof(modeFunctions[0])) {
     modeFunctions[currentMode]();
   }
-
-  //startTime = millis();
   if(sendTelemetry){
     String telemetryData = collectHousekeepingData();
     comsManager.sendTelemetryData(telemetryData);
   }
-  //endTime = millis(); 
-  //Serial.print("collectHousekeepingData execution time: ");
-  //Serial.print(endTime - startTime);
-  //Serial.println(" ms");
-  comsManager.handleWifi();
+  if(receivedFlag) {
+    String receivedCommand = comsManager.receivePackage();
+  }
 }

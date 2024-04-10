@@ -75,7 +75,6 @@ int incomingDataIndex = 0;
 
 // ----- Housekeeping -----
 volatile bool sendTelemetry;
-volatile int wifiRSSI;
 
 ComsManager::ComsManager() {}
 
@@ -120,7 +119,7 @@ void initializeEduroamWifi() {
   esp_wifi_sta_wpa2_ent_set_username((uint8_t *)wifiEduroamId, strlen(wifiEduroamId)); 
   esp_wifi_sta_wpa2_ent_set_password((uint8_t *)wifiEduroamPassword, strlen(wifiEduroamPassword)); 
   esp_wifi_sta_wpa2_ent_enable(); 
-  WiFi.begin(wifiSSID.c_str());
+  WiFi.begin(wifiEduroamSSID.c_str());
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
@@ -221,8 +220,15 @@ void ComsManager::initializeComs(bool isEduroam) {
     initializeMQTT(); 
 }
 
-void ComsManager::getWiFiRSSI() {
-    wifiRSSI = WiFi.RSSI();
+int ComsManager::getWiFiRSSI(bool isEduroam) {
+    if (WiFi.status() == WL_CONNECTED){
+        return WiFi.RSSI();
+    }
+    else{
+        if(isEduroam){ initializeEduroamWifi(); }
+        else{ initializeWifi(); }
+    }
+    return 0;
 }
 float ComsManager::getLoRaRSSI() {
     return radioClient.getRSSI();
@@ -231,10 +237,9 @@ float ComsManager::getLoRaSNR() {
     return radioClient.getSNR();
 }
 
-void ComsManager::handleWifi(){
+void ComsManager::SerialWifiComunication(){
     uint8_t i;
     if (WiFi.status() == WL_CONNECTED){
-        getWiFiRSSI();
         if(server.hasClient()) {
             for (i = 0; i < maximumServerClients; i++){
                 if(!serverClients[i] || !serverClients[i].connected()){
@@ -335,4 +340,45 @@ void ComsManager::sendTelemetryData(String telemetryJson){
 
         sendTelemetry = false;
     }
+}
+
+String ComsManager::receivePackage(){
+    receivedFlag = false;
+    // you can read received data as an Arduino String
+    String receivedCommand;
+    int state = radioClient.readData(receivedCommand);
+
+    if (state == RADIOLIB_ERR_NONE) {
+        // packet was successfully received
+        Serial.println(F("\n[SX1276] Received packet!"));
+
+        // print RSSI (Received Signal Strength Indicator)
+        Serial.print(F("[SX1276] RSSI:\t\t\t"));
+        Serial.print(radioClient.getRSSI());
+        Serial.println(F(" dBm"));
+
+        // print SNR (Signal-to-Noise Ratio)
+        Serial.print(F("[SX1276] SNR:\t\t\t"));
+        Serial.print(radioClient.getSNR());
+        Serial.println(F(" dB"));
+
+        // print frequency error
+        Serial.print(F("[SX1276] Frequency error:\t"));
+        Serial.print(radioClient.getFrequencyError());
+        Serial.println(F(" Hz"));
+
+        // print data of the packet
+        Serial.print(F("[SX1276] Data:\t\t"));
+        Serial.println(receivedCommand);
+
+    } else if (state == RADIOLIB_ERR_CRC_MISMATCH) {
+        // packet was received, but is malformed
+        Serial.println(F("[SX1276] CRC error!"));
+
+    } else {
+        // some other error occurred
+        Serial.print(F("[SX1276] Failed, code "));
+        Serial.println(state);
+    }
+    return receivedCommand;
 }

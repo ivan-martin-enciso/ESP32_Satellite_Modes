@@ -93,13 +93,12 @@ void initializeTouchbuttons(){
 }
 
 void handleMode3Timer() {
-  if (startTimer) {
-    if (mode3RemainingTime > 0) {
-      mode3RemainingTime--;
-      currentServoStep += servoStepValue;
-    }
+  if (startTimer && currentMode == 3 && mode3RemainingTime > 0) {
+    mode3RemainingTime--;
+    currentServoStep += servoStepValue;
   }
 }
+
 
 void handleHousekeepingData(){
   sendTelemetry = true;
@@ -192,7 +191,7 @@ void initializeBoard() {
     bme280.initializeBME280();
     lcdDisplay.updateProgressBar(70);                      // Update progress bar with 95%
     // Initialize communications
-    comsManager.initializeComs();
+    comsManager.initializeComs(true);
     lcdDisplay.updateProgressBar(80);                      // Update progress bar with 100%
     // Initialize timer
     initializeHousekeepingTimer();  
@@ -258,7 +257,7 @@ String collectHousekeepingData() {
   doc["Humidity"] = String(bme280.getHumidity(), 1) + PERCENTAGE;
   doc["Pressure"] = String(bme280.getPressure(), 1) + PASCALS;
   doc["Altitude"] = String(bme280.getAltitude(), 1) + METERS;
-  doc["WiFi RSSI"] = String(wifiRSSI) + DB;
+  doc["WiFi RSSI"] = String(comsManager.getWiFiRSSI(true)) + DB;
   doc["LoRA RSSI"] = String(comsManager.getLoRaRSSI(), 1) + DB;
   doc["LoRA SNR"] = String(comsManager.getLoRaSNR(), 1) + DB;
   doc["Light intensity"] = String(ldr.readLdr());

@@ -10,9 +10,9 @@
 #define SECRET_OTHER_WIFI_SSID "FRITZ!Box 7520 HL"                      // Wifi SSID
 #define SECRET_OTHER_WIFI_PASSWORD "79946432715246805999"               // Wifi Password
 #define SECRET_EDUROAM_WIFI_SSID "eduroam"                              // Eduroam SSID
-#define SECRET_EDUROAM_WIFI_PASSWORD    "********"                      // University account password
+#define SECRET_EDUROAM_WIFI_PASSWORD    "Reach4TheStars="                      // University account password
 #define SECRET_EDUROAM_WIFI_ANONYMOUSID "wlan@tu-berlin.de"             // Don't change, only used for Eduroam
-#define SECRET_EDUROAM_WIFI_EDUROAMID   "********@tu-berlin.de"         // TU account name, only used for Eduroam
+#define SECRET_EDUROAM_WIFI_EDUROAMID   "Ivan_Martin_Enciso@tu-berlin.de"         // TU account name, only used for Eduroam
 
 // Settings: MQTT
 #define SECRET_MQTT_BROKER   "heide.bastla.net"                         // Server hostname (FQDN)
