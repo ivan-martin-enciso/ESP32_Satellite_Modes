@@ -1,18 +1,19 @@
 /* Implement the mode 5 functionality here
  */
 #include "Mode5.h"
-
 #include <Arduino.h>
 #include <Utils.h>
-#include <Melodies.h>
+
 
 void mode5(){
   try{
     delay(100);
     if( modeChanged() ){
+      startMode5 = false;
       return;
     }
-    lcdDisplay.printInDisplay("", 10);
+    chartDisplay.initializeChartDisplay();
+    chartDisplay.displayChart(mode5Value);
   }
   catch (int error) {
     Serial.print(ERROR);

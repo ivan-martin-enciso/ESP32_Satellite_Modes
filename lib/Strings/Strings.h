@@ -89,6 +89,8 @@ const char BME280_SENSOR_ID_BME_680[] = "ID of 0x61 represents a BME 680";
 // Display
 const char INITIALIZE_DISPLAY[] = "LCD Display initialization";
 const char DISPLAY_SETUP_ERROR[] = "LCD Display Setup Error";
+const char INITIALIZE_CHART_DISPLAY[] = "Chart Display initialization";
+const char CHART_DISPLAY_SETUP_ERROR[] = "Chart Display Setup Error";
 
 // Buzzer
 const char INITIALIZE_BUZZER[] = "Buzzer initialization";

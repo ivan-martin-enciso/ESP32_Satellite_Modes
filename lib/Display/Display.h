@@ -21,7 +21,6 @@ public:
   void initializeDisplay();
   void clearDisplay();
   void fillScreen();
-  void drawMode5(float roll, float pitch);
 private:
   Adafruit_SSD1306 display;
   String currentModeString;

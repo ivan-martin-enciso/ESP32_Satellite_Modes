@@ -18,10 +18,11 @@
 #include "Ldr.h"
 #include <esp32-hal-timer.h>
 #include "TelecommandsManager.h"
-
+#include "ChartDisplay.h"
 // ----- Satellite modes -----
 extern int currentMode;   
 extern volatile int nextMode;
+extern double volatile mode5Value;
 bool modeChanged();
 void handleModeChange();
 

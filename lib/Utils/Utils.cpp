@@ -9,6 +9,7 @@ int currentMode = -1;
 int volatile nextMode = 0;
 String currentModeString;
 int defaultMode = 0;
+double volatile mode5Value = 0;
 
 
 // ----- Ldr thresholds -----
@@ -30,6 +31,7 @@ StorageManager storageManager;
 ServoController servoController;
 Ldr ldr;
 TelecommandsManager telecommandsManager;
+ChartDisplay chartDisplay; 
 
 // Timer settings
 const int timerInterval = 1000000; // Interval in milliseconds
@@ -103,6 +105,7 @@ void handleMode3Timer() {
 
 void handleHousekeepingData(){
   sendTelemetry = true;
+  if(currentMode == 5) mode5Value = random(50) + 50;
   handleMode3Timer();
 }
 
@@ -125,6 +128,7 @@ void handleModeChange(){
   ledController.blink(currentLed, currentLed == redLed ? 3 : 1);     // Blink according to the mode change
   if (nextMode < 0 || nextMode > 5) buzzer.beep(3, 50);
   nextMode = constrain(currentMode, 0, 5);                           // Limit mode to 0-5
+  if (nextMode == 5) startMode5 = true;
   currentModeString = MODE;
   currentModeString.concat(nextMode);                                // Append current mode
   lcdDisplay.setCurrentMode(currentModeString);

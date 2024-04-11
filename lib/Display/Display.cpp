@@ -114,10 +114,3 @@ void Display::fillScreen() {
   display.display();
 }
 
-void Display::drawMode5(float roll, float pitch){
-  display.clearDisplay();
-  display.setCursor(0, 0);
-  display.print(currentModeString);
-  display.drawLine(oledWidth / 2, oledHeight / 2, oledWidth / 2 + roll, oledHeight / 2 + pitch, SSD1306_WHITE);
-  display.display();
-}
