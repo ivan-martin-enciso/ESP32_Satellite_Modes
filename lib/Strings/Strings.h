@@ -44,6 +44,9 @@ const char RSSI[] = "WiFi RSSI: ";
 const char DB[] = " dB";
 const char NEW_CLIENT[] = "New client: ";
 const char WIFI_NOT_CONNECTED[] = "Wifi not connected";
+const char EDUROAM[] = "eduroam";
+const char RECEIVED_WIFI[] = "Received package over WiFi";
+
 // UART
 const char SERIAL_WELCOME[] = "Hello, you are connected to Ivan's Satellite!\n";
 const char PROMPT_USER[] = "Please enter a command followed by the 'Enter' key:\n";
@@ -51,6 +54,8 @@ const char RECEIVED_DATA[] = "Received data: ";
 // Lora
 const char INITIALIZE_LORA[] = "LoRa initialization: ";
 const char LORA_LISTENING[] = "[SX1276] Starting to listen ... ";
+const char RECEIVED_LORA[] = "Received package over LoRa";
+
 // MQTT
 const char INITIALIZE_MQTT[] = "MQTT initialization: ";
 

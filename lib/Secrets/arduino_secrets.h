@@ -7,10 +7,10 @@
  */
 
 // Settings: Wi-Fi credentials
-#define SECRET_WIFI_SSID        "FRITZ!Box 7520 HL"               // Replace "eduroam" for other Wi-Fi
-#define SECRET_WIFI_PASSWORD    "79946432715246805999"              // Wi-Fi or university account password
-//#define SECRET_WIFI_SSID        "eduroam"               // Replace "eduroam" for other Wi-Fi
-//#define SECRET_WIFI_PASSWORD    "Reach4TheStars="              // Wi-Fi or university account password
+//#define SECRET_WIFI_SSID        "FRITZ!Box 7520 HL"               // Replace "eduroam" for other Wi-Fi
+//#define SECRET_WIFI_PASSWORD    "79946432715246805999"              // Wi-Fi or university account password
+#define SECRET_WIFI_SSID        "eduroam"               // Replace "eduroam" for other Wi-Fi
+#define SECRET_WIFI_PASSWORD    "Reach4TheStars="              // Wi-Fi or university account password
 #define SECRET_WIFI_ANONYMOUSID "wlan@tu-berlin.de"     // Don't change, only used for Eduroam
 #define SECRET_WIFI_EDUROAMID   "Ivan_Martin_Enciso@tu-berlin.de" // TU account name, only used for Eduroam
 

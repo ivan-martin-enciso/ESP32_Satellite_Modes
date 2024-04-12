@@ -114,3 +114,29 @@ void Display::fillScreen() {
   display.display();
 }
 
+void Display::promptLoRa(){
+  display.clearDisplay();
+  display.setCursor(0,0);
+  display.print("Choose communication:");
+  display.setCursor(10,10);
+  display.print("LoRa <--");
+  display.setCursor(70,10);
+  display.print("WiFi");
+  display.setCursor(0,20);
+  display.print("Press X to confirm");
+  display.display();
+}
+
+void Display::promptWiFi(){
+  display.clearDisplay();
+  display.setCursor(0,0);
+  display.print("Choose communication:");
+  display.setCursor(10,10);
+  display.print("LoRa");
+  display.setCursor(70,10);
+  display.print("WiFi <--");
+  display.setCursor(0,20);
+  display.print("Press X to confirm");
+  display.display();
+}
+

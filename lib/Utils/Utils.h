@@ -23,6 +23,7 @@
 extern int currentMode;   
 extern volatile int nextMode;
 extern double volatile mode5Value;
+extern bool volatile isComLoRa;
 bool modeChanged();
 void handleModeChange();
 

@@ -14,20 +14,23 @@
 
 // ----- Telemetry & Telecommand-----
 extern volatile bool sendTelemetry;
-extern String receivedPayload; 
-extern volatile bool receivedFlag; 
+extern String receivedPayloadWiFi;
+extern String receivedPayloadLoRa;  
+extern volatile bool receivedLora; 
+extern volatile bool receivedWifi; 
+
 
 class ComsManager {
 public:
     ComsManager();
     ~ComsManager();
-    void initializeComs(bool isEduroam = false);
+    void initializeComs();
     void sendTelemetryData(String telemetryJson);
-    float getWiFiRSSI(bool isEduroam = false);
+    float getWiFiRSSI();
     float getLoRaRSSI();
     float getLoRaSNR();
     void serialWifiComunication();
-    String receivePackageUsignLora();
+    void receivePackageUsignLora();
 };
 
 extern ComsManager comsManager;

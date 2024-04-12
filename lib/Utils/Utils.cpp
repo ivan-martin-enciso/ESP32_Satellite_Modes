@@ -10,7 +10,7 @@ int volatile nextMode = 0;
 String currentModeString;
 int defaultMode = 0;
 double volatile mode5Value = 0;
-
+bool volatile isComLoRa = true;
 
 // ----- Ldr thresholds -----
 volatile int ldrThreshold1;
@@ -165,11 +165,30 @@ void fetchInitialValuesFromMemory(bool fetchDefaultMode = true){
   }
 }
 
+void promptUser() {
+  lcdDisplay.promptLoRa();
+  while (true) {
+    if (touchRead(touchXPin) > touchThreshold) break;
+    if (touchRead(touchLeftPin) > touchThreshold) {
+      lcdDisplay.promptLoRa();
+      isComLoRa = true;
+    }
+    else if (touchRead(touchRightPin) > touchThreshold) {
+      lcdDisplay.promptWiFi();
+      isComLoRa = false;
+    }
+    delay(100);
+  }
+  Serial.print("User set communications to LoRa: ");
+  Serial.println(isComLoRa);
+}
+
 void initializeBoard() {
   try {
     Serial.println(BOARD_SETUP);                           // Print in Serial
     // Initialize Display
-    lcdDisplay.initializeDisplay();                        
+    lcdDisplay.initializeDisplay();    
+    promptUser();                    
     lcdDisplay.updateProgressBar(0);                       // Update progress bar with 0%
      // Initialize memory
     storageManager.initializeEEPROM();
@@ -196,7 +215,7 @@ void initializeBoard() {
     bme280.initializeBME280();
     lcdDisplay.updateProgressBar(70);                      // Update progress bar with 95%
     // Initialize communications
-    comsManager.initializeComs(false);
+    comsManager.initializeComs();
     lcdDisplay.updateProgressBar(80);                      // Update progress bar with 100%
     // Initialize timer
     initializeHousekeepingTimer();  
@@ -265,7 +284,7 @@ String collectHousekeepingData() {
   doc["Humidity"] = String(bme280.getHumidity(), 1) + PERCENTAGE;
   doc["Pressure"] = String(bme280.getPressure(), 1) + PASCALS;
   doc["Altitude"] = String(bme280.getAltitude(), 1) + METERS;
-  doc["WiFi RSSI"] = String(comsManager.getWiFiRSSI(true), 1) + DB;
+  doc["WiFi RSSI"] = String(comsManager.getWiFiRSSI(), 1) + DB;
   doc["LoRA RSSI"] = String(comsManager.getLoRaRSSI(), 1) + DB;
   doc["LoRA SNR"] = String(comsManager.getLoRaSNR(), 1) + DB;
   doc["Light intensity"] = String(ldr.readLdr());
@@ -276,34 +295,43 @@ String collectHousekeepingData() {
   doc["Default Temperature Lower Threshold"] = String(temperatureLowerThreshold) + DEGCELSIUS;
   doc["Default Temperature Upper Threshold"] = String(temperatureUpperThreshold) + DEGCELSIUS;
   String jsonData;
-  serializeJson(doc, jsonData);
-
+  serializeJsonPretty(doc, jsonData);
   return jsonData; 
 } 
+
+void processPayload(String payload){
+  int receivedMode = telecommandsManager.processTelecommand(payload, currentMode);
+  switch(receivedMode){
+    case -1:
+      break;
+    case -2:
+      if(defaultMode != nextDefaultMode)  defaultMode = nextDefaultMode;
+      break;
+    case -3:
+      fetchInitialValuesFromMemory(false);
+      break;
+    default:
+      if(currentMode == 3)  resetMode3();
+      nextMode = receivedMode != currentMode ? receivedMode : currentMode;
+      break;
+  }
+  receivedWifi = false;
+  receivedLora = false;
+}
 
 void handleCommunications(){
   if(sendTelemetry){
     String telemetryData = collectHousekeepingData();
     comsManager.sendTelemetryData(telemetryData);
   }
-  if(receivedFlag){
-    int receivedMode = telecommandsManager.processTelecommand(receivedPayload, currentMode);
-    Serial.println(receivedMode);
-    switch(receivedMode){
-      case -1:
-        break;
-      case -2:
-        if(defaultMode != nextDefaultMode)  defaultMode = nextDefaultMode;
-        break;
-      case -3:
-        fetchInitialValuesFromMemory(false);
-        break;
-      default:
-        if(currentMode == 3)  resetMode3();
-        nextMode = receivedMode != currentMode ? receivedMode : currentMode;
-        break;
-    }
-    receivedFlag = false; 
+  comsManager.receivePackageUsignLora();
+  if(receivedLora && receivedWifi){
+    Serial.println(RECEIVED_LORA);
+    processPayload(receivedPayloadLoRa);
+  }
+  if(!receivedLora && receivedWifi){
+    Serial.println(RECEIVED_WIFI);
+    processPayload(receivedPayloadWiFi);
   }
 }
 

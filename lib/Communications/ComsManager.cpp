@@ -9,6 +9,7 @@ const char wifiAnonymousId[] = SECRET_WIFI_ANONYMOUSID;
 const char wifiEduroamId[]   = SECRET_WIFI_EDUROAMID;
 const int serialPort              = 23; 
 const int maximumServerClients    = 1;
+volatile bool receivedWifi = false; 
 WiFiServer server(serialPort);
 WiFiClient serverClients[maximumServerClients];
 WiFiClientSecure wifiClient;
@@ -62,7 +63,7 @@ nLRbwHOoq7hHwg==\n\
 // ----- LoRa -----
 static const int loraFrequency = 868.0, loraCSPin = 38, loraRSTPin = 48, loraIrqPin = 47;
 SX1276 radioClient = new Module(loraCSPin, loraIrqPin, loraRSTPin, RADIOLIB_NC); // GPIO Pins are not connected on CADSE board!
-volatile bool receivedFlag = false; // flag to indicate that a packet was received
+volatile bool receivedLora = false; // flag to indicate that a packet was received
 
 const char* welcomeMsg = SERIAL_WELCOME;
 const char* promptMsg = PROMPT_USER;
@@ -75,7 +76,8 @@ int incomingDataIndex = 0;
 
 // ----- Telemetry & Telecommand-----
 volatile bool sendTelemetry;
- String receivedPayload; 
+String receivedPayloadWiFi;
+String receivedPayloadLoRa;  
 
 ComsManager::ComsManager() {}
 
@@ -90,6 +92,11 @@ void printIp(){
 /*
  * Initialize Wi-Fi connection
  */
+
+bool IsEduroamConnection(){
+    return wifiSSID.equals(EDUROAM);
+}
+
 void initializeWifi() {
     delay(10);
     Serial.print(INITIALIZE_WIFI);
@@ -137,9 +144,8 @@ void initializeEduroamWifi() {
   ICACHE_RAM_ATTR
 #endif
 void setLoraRxFlag(void) {
-  receivedFlag = true;    // we got a packet, set the flag
+  receivedLora = true;    // we got a packet, set the flag
 }
-
 void initializeLora() {
     // initialize SX1278 with default settings
     Serial.print(INITIALIZE_LORA);
@@ -173,8 +179,8 @@ void receivePackageUsignMqtt(char* topic, byte *payload, unsigned int length) {
     char str[length + 1];
     memcpy(str, payload, length + 1);
     str[length + 1] = '\0';
-    receivedPayload = String(str);
-    receivedFlag = true; 
+    receivedPayloadWiFi = String(str);
+    receivedWifi = true; 
 }
 /*
  * Initialize MQTT connection
@@ -207,11 +213,11 @@ void initializeMQTT() {
     Serial.println(COMPLETE);
 }
 
-void ComsManager::initializeComs(bool isEduroam) {
+void ComsManager::initializeComs() {
     // Generate board-specific MQTT topics using the pattern [prefix]/[year]/[ID]/[variable]
     mqttTopic = mqttPrefix + "/" + String(mqttYear) + "/" + String(mqttBoardId) + "/" + TELEMETRY_TOPIC;
     mqttSubscribe = TELECOMMAND_TOPIC; // Topic telecommand
-    if(isEduroam){ initializeEduroamWifi(); }
+    if(IsEduroamConnection()){ initializeEduroamWifi(); }
     else{ initializeWifi(); }
 
     initializeLora();
@@ -220,12 +226,12 @@ void ComsManager::initializeComs(bool isEduroam) {
     initializeMQTT(); 
 }
 
-float ComsManager::getWiFiRSSI(bool isEduroam) {
+float ComsManager::getWiFiRSSI() {
     if (WiFi.status() == WL_CONNECTED){
         return WiFi.RSSI();
     }
     else{
-        if(isEduroam){ initializeEduroamWifi(); }
+        if(IsEduroamConnection()){ initializeEduroamWifi(); }
         else{ initializeWifi(); }
     }
     return 0;
@@ -340,14 +346,16 @@ void ComsManager::sendTelemetryData(String telemetryJson){
 }
 
 
-String ComsManager::receivePackageUsignLora(){
-    receivedFlag = false;
-    // you can read received data as an Arduino String
-    Serial.println("receivedFlag");
-    String receivedCommand;
-    int state = radioClient.readData(receivedCommand);
+void ComsManager::receivePackageUsignLora(){
+    if(receivedLora) {
+        // reset flag
+        receivedLora = false;
 
-    if (state == RADIOLIB_ERR_NONE) {
+        // you can read received data as an Arduino String
+        String str;
+        int state = radioClient.readData(str);
+
+        if (state == RADIOLIB_ERR_NONE) {
         // packet was successfully received
         Serial.println(F("\n[SX1276] Received packet!"));
 
@@ -368,16 +376,17 @@ String ComsManager::receivePackageUsignLora(){
 
         // print data of the packet
         Serial.print(F("[SX1276] Data:\t\t"));
-        Serial.println(receivedCommand);
-
-    } else if (state == RADIOLIB_ERR_CRC_MISMATCH) {
+        Serial.println(str);      
+        receivedPayloadLoRa = str;
+        } else if (state == RADIOLIB_ERR_CRC_MISMATCH) {
         // packet was received, but is malformed
         Serial.println(F("[SX1276] CRC error!"));
 
-    } else {
+        } else {
         // some other error occurred
         Serial.print(F("[SX1276] Failed, code "));
         Serial.println(state);
+
+        }
     }
-    return receivedCommand;
 }

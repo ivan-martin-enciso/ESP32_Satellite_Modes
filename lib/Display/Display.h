@@ -21,6 +21,8 @@ public:
   void initializeDisplay();
   void clearDisplay();
   void fillScreen();
+  void promptLoRa();
+  void promptWiFi();
 private:
   Adafruit_SSD1306 display;
   String currentModeString;
