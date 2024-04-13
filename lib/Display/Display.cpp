@@ -97,8 +97,7 @@ void Display::initializeDisplay() {
   display.setTextColor(SSD1306_WHITE);
   display.setRotation(2);
   display.display();
-  delay(1000);
-
+  delay(100);
   display.clearDisplay();
   display.display();
   Serial.println(COMPLETE);
@@ -138,5 +137,12 @@ void Display::promptWiFi(){
   display.setCursor(0,20);
   display.print("Press X to confirm");
   display.display();
+}
+
+int Display::getTextBounds(String text){
+  int16_t x1, y1;
+  uint16_t w, h;
+  display.getTextBounds(text, 0, 0, &x1, &y1, &w, &h);
+  return w;
 }
 

@@ -9,8 +9,8 @@ int currentMode = -1;
 int volatile nextMode = 0;
 String currentModeString;
 int defaultMode = 0;
-double volatile mode5Value = 0;
 bool volatile isComLoRa = true;
+bool refreshMode5 = false;
 
 // ----- Ldr thresholds -----
 volatile int ldrThreshold1;
@@ -105,7 +105,7 @@ void handleMode3Timer() {
 
 void handleHousekeepingData(){
   sendTelemetry = true;
-  if(currentMode == 5) mode5Value = random(50) + 50;
+  if(currentMode == 5) refreshMode5 = true;
   handleMode3Timer();
 }
 
@@ -166,6 +166,7 @@ void fetchInitialValuesFromMemory(bool fetchDefaultMode = true){
 }
 
 void promptUser() {
+  Serial.println("Waiting for User Prompt...");
   lcdDisplay.promptLoRa();
   while (true) {
     if (touchRead(touchXPin) > touchThreshold) break;
@@ -269,9 +270,34 @@ String getTouchpadsValues(){
          TOUCH_RIGHT + String(right);
 }
 
+double readMode5Data(){
+  double value = 0.0;
+  switch(mode5Function){
+    case 0:
+      value = bme280.getTemperature();
+      break;
+    case 1:
+      value = ldr.readLdr();
+      break;
+    case 2:
+      value = bme280.getHumidity();
+      break;
+    case 3:
+      value = bme280.getAltitude();
+      break;
+    case 4:
+      value = bme280.getPressure();
+      break;
+    default:
+      break;
+  }
+  refreshMode5 = false;
+  return value;
+}
+
 // Communictions
 
-String collectHousekeepingData() {
+JsonDocument collectHousekeepingData() {
   JsonDocument doc;  
   doc["Current Mode"] = currentMode;
   doc["Default Mode"] = defaultMode;
@@ -287,6 +313,7 @@ String collectHousekeepingData() {
   doc["WiFi RSSI"] = String(comsManager.getWiFiRSSI(), 1) + DB;
   doc["LoRA RSSI"] = String(comsManager.getLoRaRSSI(), 1) + DB;
   doc["LoRA SNR"] = String(comsManager.getLoRaSNR(), 1) + DB;
+  doc["LoRA Frequency Error"] = String(comsManager.getLoRaFreqError(), 1) + DB;
   doc["Light intensity"] = String(ldr.readLdr());
   doc["Touchpads"] = getTouchpadsValues();
   doc["Default LDR Threshold 1"] = String(ldrThreshold1);
@@ -294,9 +321,7 @@ String collectHousekeepingData() {
   doc["Default LDR Threshold 3"] = String(ldrThreshold3);
   doc["Default Temperature Lower Threshold"] = String(temperatureLowerThreshold) + DEGCELSIUS;
   doc["Default Temperature Upper Threshold"] = String(temperatureUpperThreshold) + DEGCELSIUS;
-  String jsonData;
-  serializeJsonPretty(doc, jsonData);
-  return jsonData; 
+  return doc; 
 } 
 
 void processPayload(String payload){
@@ -321,15 +346,14 @@ void processPayload(String payload){
 
 void handleCommunications(){
   if(sendTelemetry){
-    String telemetryData = collectHousekeepingData();
+    JsonDocument telemetryData = collectHousekeepingData();
     comsManager.sendTelemetryData(telemetryData);
   }
-  comsManager.receivePackageUsignLora();
-  if(receivedLora && receivedWifi){
-    Serial.println(RECEIVED_LORA);
+  if(isComLoRa && receivedLora){
+    comsManager.receivePackageUsingLora();
     processPayload(receivedPayloadLoRa);
   }
-  if(!receivedLora && receivedWifi){
+  else if (!isComLoRa && receivedWifi){
     Serial.println(RECEIVED_WIFI);
     processPayload(receivedPayloadWiFi);
   }

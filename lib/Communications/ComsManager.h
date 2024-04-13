@@ -25,12 +25,20 @@ public:
     ComsManager();
     ~ComsManager();
     void initializeComs();
-    void sendTelemetryData(String telemetryJson);
+    void sendTelemetryData(JsonDocument telemetryJson);
     float getWiFiRSSI();
     float getLoRaRSSI();
     float getLoRaSNR();
+    float getLoRaFreqError();
+    void setLoRaRSSI();
+    void setLoRaSNR();
+    void setLoRaFreqError();
     void serialWifiComunication();
-    void receivePackageUsignLora();
+    void receivePackageUsingLora();
+private:
+    float loraRSSI = 0;
+    float loraSNR = 0;
+    float loraFrequencyError = 0;
 };
 
 extern ComsManager comsManager;

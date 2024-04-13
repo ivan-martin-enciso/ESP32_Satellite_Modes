@@ -74,14 +74,14 @@ const char Z[] = " Z = ";
 const char DEG_PER_S[] = " °/s";
 const char G_UNIT[] = " g";
 // BME280
-const char TEMPERATURE[] = "Temperature = ";
+const char TEMPERATURE[] = "Temperature: ";
 const char CELSIUS[] = " C";
 const char DEGCELSIUS[] = " °C";
-const char PRESSURE[] = "Pressure = ";
+const char PRESSURE[] = "Pressure: ";
 const char PASCALS[] = " hPa";
-const char ALTITUDE[] = "Altitude = ";
+const char ALTITUDE[] = "Altitude: ";
 const char METERS[] = " m";
-const char HUMIDITY[] = "Humidity = ";
+const char HUMIDITY[] = "Humidity: ";
 const char PERCENTAGE[] = " %";
 const char INITIALIZE_BME280[] = "BME280 initialization";
 const char BME280_SENSOR_ERROR[] = "Could not find a valid BME280 sensor, check wiring, address, sensor ID!";

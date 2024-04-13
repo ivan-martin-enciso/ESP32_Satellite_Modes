@@ -7,6 +7,9 @@
 #include "Strings.h"
 
 extern volatile bool startMode5;
+extern String minYLimitLabel;
+extern String maxYLimitLabel;
+extern String reading;
 class ChartDisplay {
 public:
   ChartDisplay();
@@ -14,7 +17,7 @@ public:
   void initializeChartDisplay();
   void displayChart(double value);
   void setCurrentMode(String currentMode);
-  
+  void setChartLabels();
 private:
   OLED_SSD1306_Chart chartDisplay;
   char actualThickness;

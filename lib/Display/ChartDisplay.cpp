@@ -6,8 +6,22 @@
 #define BAUDRATE 115200
 #define SDA_PIN D1
 #define SCL_PIN D2
+
+// Definitions 
 volatile bool startMode5 = false;
+String minYLimitLabel = "0";
+String maxYLimitLabel = "100";
+String reading = "TEMPERATURE";
 const byte oledAddress = 0x3C;
+
+void ChartDisplay::setChartLabels(){
+  char charArray1[minYLimitLabel.length() + 1]; // +1 for the null terminator
+  minYLimitLabel.toCharArray(charArray1, sizeof(charArray1));
+  char charArray2[maxYLimitLabel.length() + 1]; // +1 for the null terminator
+  maxYLimitLabel.toCharArray(charArray2, sizeof(charArray2));
+  chartDisplay.setYLimitLabels(charArray1, charArray2);    //Setting Y axis labels
+  chartDisplay.setYLabelsVisible(true);
+}
 
 ChartDisplay::ChartDisplay() : chartDisplay(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET){}
 
@@ -33,8 +47,7 @@ void ChartDisplay::initializeChartDisplay() {
     chartDisplay.setChartWidthAndHeight(123, 26); //Chart width = 123 and height = 60
     chartDisplay.setXIncrement(5);                //Distance between Y points will be 5px
     chartDisplay.setYLimits(0, 100);             //Ymin = 0 and Ymax = 100
-    chartDisplay.setYLimitLabels("0", "100");    //Setting Y axis labels
-    chartDisplay.setYLabelsVisible(true);
+    setChartLabels();
     chartDisplay.setAxisDivisionsInc(12, 6);    //Each 12 px a division will be painted in X axis and each 6px in Y axis
     chartDisplay.setPlotMode(SINGLE_PLOT_MODE); //Set single plot mode
     chartDisplay.setPointGeometry(POINT_GEOMETRY_CIRCLE);
@@ -59,6 +72,7 @@ void ChartDisplay::displayChart(double value){
     {
       actualThickness = NORMAL_LINE;
     }
+    setChartLabels();
     chartDisplay.setLineThickness(actualThickness);
     chartDisplay.drawChart();
   }

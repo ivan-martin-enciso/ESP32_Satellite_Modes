@@ -23,6 +23,7 @@ public:
   void fillScreen();
   void promptLoRa();
   void promptWiFi();
+  int getTextBounds(String text);
 private:
   Adafruit_SSD1306 display;
   String currentModeString;

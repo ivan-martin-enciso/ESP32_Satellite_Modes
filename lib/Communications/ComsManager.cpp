@@ -236,11 +236,23 @@ float ComsManager::getWiFiRSSI() {
     }
     return 0;
 }
-float ComsManager::getLoRaRSSI() {
-    return radioClient.getRSSI();
+void ComsManager::setLoRaRSSI() {
+    loraRSSI = radioClient.getRSSI();
 }
-float ComsManager::getLoRaSNR() {
-    return radioClient.getSNR();
+void ComsManager::setLoRaSNR() {
+    loraSNR = radioClient.getSNR();
+}
+void ComsManager::setLoRaFreqError() {
+    loraFrequencyError = radioClient.getFrequencyError();
+}
+float ComsManager::getLoRaRSSI(){
+    return loraRSSI;
+}
+float ComsManager::getLoRaSNR(){
+    return loraSNR;
+}
+float ComsManager::getLoRaFreqError(){
+    return loraFrequencyError;
 }
 
 void ComsManager::serialWifiComunication(){
@@ -318,7 +330,7 @@ void ComsManager::serialWifiComunication(){
     }
 }
 
-void ComsManager::sendTelemetryData(String telemetryJson){
+void ComsManager::sendTelemetryData(JsonDocument telemetryJson){
     if(sendTelemetry){
         mqttClient.loop();
         if (!mqttClient.connected()) {
@@ -327,11 +339,8 @@ void ComsManager::sendTelemetryData(String telemetryJson){
         }
         Serial.println(SENDING_HOUSEKEEPING_DATA);
 
-        JsonDocument doc;
-        deserializeJson(doc, telemetryJson);
-
         // Extract keys from the JSON object
-        for (JsonPair keyValue : doc.as<JsonObject>()) {
+        for (JsonPair keyValue : telemetryJson.as<JsonObject>()) {
             String mqttPublish = mqttTopic + "/"; 
             const char* key = keyValue.key().c_str(); 
             mqttPublish.concat(key);
@@ -346,47 +355,27 @@ void ComsManager::sendTelemetryData(String telemetryJson){
 }
 
 
-void ComsManager::receivePackageUsignLora(){
+void ComsManager::receivePackageUsingLora(){
     if(receivedLora) {
-        // reset flag
         receivedLora = false;
-
-        // you can read received data as an Arduino String
-        String str;
-        int state = radioClient.readData(str);
+        Serial.println(RECEIVED_LORA);
+        String receivedString;
+        int state = radioClient.readData(receivedString);
 
         if (state == RADIOLIB_ERR_NONE) {
-        // packet was successfully received
-        Serial.println(F("\n[SX1276] Received packet!"));
+            setLoRaRSSI();
+            setLoRaSNR();
+            setLoRaFreqError();
 
-        // print RSSI (Received Signal Strength Indicator)
-        Serial.print(F("[SX1276] RSSI:\t\t\t"));
-        Serial.print(radioClient.getRSSI());
-        Serial.println(F(" dBm"));
+            receivedPayloadLoRa = receivedString;
+            } else if (state == RADIOLIB_ERR_CRC_MISMATCH) {
+            // packet was received, but is malformed
+            Serial.println(F("[SX1276] CRC error!"));
 
-        // print SNR (Signal-to-Noise Ratio)
-        Serial.print(F("[SX1276] SNR:\t\t\t"));
-        Serial.print(radioClient.getSNR());
-        Serial.println(F(" dB"));
-
-        // print frequency error
-        Serial.print(F("[SX1276] Frequency error:\t"));
-        Serial.print(radioClient.getFrequencyError());
-        Serial.println(F(" Hz"));
-
-        // print data of the packet
-        Serial.print(F("[SX1276] Data:\t\t"));
-        Serial.println(str);      
-        receivedPayloadLoRa = str;
-        } else if (state == RADIOLIB_ERR_CRC_MISMATCH) {
-        // packet was received, but is malformed
-        Serial.println(F("[SX1276] CRC error!"));
-
-        } else {
-        // some other error occurred
-        Serial.print(F("[SX1276] Failed, code "));
-        Serial.println(state);
-
+            } else {
+            // some other error occurred
+            Serial.print(F("[SX1276] Failed, code "));
+            Serial.println(state);
         }
     }
 }

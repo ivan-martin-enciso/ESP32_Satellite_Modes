@@ -1,6 +1,7 @@
 #include "TelecommandsManager.h"
 
 int volatile nextDefaultMode = 0;
+int volatile mode5Function = 0;
 
 typedef void (TelecommandsManager::*TelecommandFunction)(JsonObject);
 TelecommandFunction telecommandFunction[] = {
@@ -111,5 +112,29 @@ void TelecommandsManager::processMode4(JsonObject data) {
 }
 
 void TelecommandsManager::processMode5(JsonObject data) {
-    // Process mode 5
+     if (!data.containsKey("minY") || !data.containsKey("maxY") || !data.containsKey("reading")) {
+        Serial.println("Error: Missing mode 5 data in received data.");
+        return;
+    }
+
+    String minY = data["minY"];
+    String maxY = data["maxY"];
+    String receivedReading = data["reading"];
+
+    if (!data["minY"].is<String>() || 
+        !data["maxY"].is<String>() || 
+        !data["reading"].is<String>()) {
+        Serial.println("Error: Invalid mode 5 data.");
+        return;
+    }
+    minYLimitLabel = minY;
+    maxYLimitLabel = maxY;
+    receivedReading.toUpperCase();
+    for (const auto& item : TelecommandsManager::readings) {
+        if (item.label.equals(receivedReading)) {
+            reading = item.label;
+            mode5Function = item.function;
+        }
+    }
+
 }
