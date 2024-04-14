@@ -14,6 +14,7 @@ void changeReading(){
     int xAxis = (128 - lcdDisplay.getTextBounds(currentReading)) / 2;
     lcdDisplay.printInDisplay(currentReading, 15, xAxis);
     delay(700);
+    chartDisplay.initializeChartDisplay();
   }
 }
 

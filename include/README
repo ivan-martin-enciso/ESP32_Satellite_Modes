@@ -1,53 +1,44 @@
 
-This directory is intended for project header files.
+# Space Electronics II Final Project 
 
-A header file is a file containing C declarations and macro definitions
-to be shared between several project source files. You request the use of a
-header file in your project source file (C, C++, etc) located in `src` folder
-by including it, with the C preprocessing directive `#include'.
+This project represents a scenario in which a satellite engineering model is tested in the lab environment. The CADSE board will be referred to as the “satellite”. The satellite sends housekeeping data to the ground station network and receives commands. The satellite has two communication links, a lower band (868MHz LoRa, SF9, BW 125kHz) for receiving the commands, and a higher band (2.4GHz WiFi) for downlinking the data.
 
-```src/main.c
+The satellite has 5 different modes to switch to. 
 
-#include "header.h"
+## Table of Contents
+- [Mode1](#mode1)
+- [Usage](#usage)
 
-int main (void)
-{
- ...
-}
-```
+## Mode 0
+Idle mode where the satellite is just waiting for telecommands, but still sending telemetry data every second. 
 
-Including a header file produces the same results as copying the header file
-into each source file that needs it. Such copying would be time-consuming
-and error-prone. With a header file, the related declarations appear
-in only one place. If they need to be changed, they can be changed in one
-place, and programs that include the header file will automatically use the
-new version when next recompiled. The header file eliminates the labor of
-finding and changing all the copies as well as the risk that a failure to
-find one copy will result in inconsistencies within a program.
+## Mode 1
+A bitmap image of the satellite is used to represent the gravitational "fall" using the IMU acceleration data. 
 
-In C, the usual convention is to give header files names that end with `.h'.
-It is most portable to use only letters, digits, dashes, and underscores in
-header file names, and at most one dot.
+## Mode 2 
+An alarm system for critical errors is implemented. When the environmental sensor reading of the temperature exceeds or drops below certain configurable thresholds, a buzzer as well as the OLED blinking Morse-coded “SOS” are called. 
 
-Read more about using header files in official GCC documentation:
+## Mode 3
+A configurable timer is implemented. The timer can be started using the touchpad 'X' and the remaining time is visualized in the display. Furthermore, a servo acts as a physical visualization of the time left where 100% is 90 degrees and 0% time left is -90 degrees. 
 
-* Include Syntax
-* Include Operation
-* Once-Only Headers
-* Computed Includes
+## Mode 4 
+Light intensity is represented in using the LEDs of the board where each of them is lit up if a certain threshold is met. There are three configurable thresholds for this mode. 
 
-https://gcc.gnu.org/onlinedocs/cpp/Header-Files.html
+# Mode 5
+A graphical representation of all the sensors reading is implemented using a customizable graphics library. The readings are configurable via telecommand. 
 
-For Telecommands: cadse/2023/broadcast
+## Usage
 
-Set Default mode in persistent memory:
+For Telecommands the topic is: cadse/2023/broadcast
+
+Json used to set Default mode in persistent memory:
 {
   "type": "setDefaultMode",
   "cadse_id": 16,
   "mode": 0
 }
 
-Change between modes and set thresholds:
+Json used to change between modes and set thresholds:
 {
   "type": "telecommand",
   "cadse_id": 16,
@@ -60,3 +51,21 @@ Change between modes and set thresholds:
     "defLdrT3": 3100
   }
 }
+
+Json used to change readings in mode 5
+{
+  "type": "telecommand",
+  "cadse_id": 16,
+  "mode": 5,
+  "data": {
+    "minY": "0",
+    "maxY": "5000",
+    "reading": "Ldr"
+  }
+}
+The possible readings are:
+- Temperature
+- Ldr
+- Humidity
+- Altitude
+- Pressure

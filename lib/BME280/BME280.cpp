@@ -1,9 +1,26 @@
 #include "BME280.h"
+/**
+ * @file BME280.cpp
+ * @brief Implementation class for the environmental BME280 sensor.
+ * @author Ivan Martin Enciso 
+ */
 
+/**
+ * @brief Constructor for the BME280 class.
+ */
 BME280::BME280() {}
 
+/**
+ * @brief Destructor for the BME280 class.
+ */
 BME280::~BME280() {}
 
+/**
+ * @brief Initializes the BME280 sensor.
+ * 
+ * This function initializes the BME280 sensor using Wire.h libray and the sensor address 0x76.
+ * If errors occurs it is printed in the serial along with the sensor id/
+ */
 void BME280::initializeBME280() {
   Serial.print(INITIALIZE_BME280);
   unsigned status;
@@ -21,6 +38,12 @@ void BME280::initializeBME280() {
   Serial.println(COMPLETE);
 }
 
+/**
+ * @brief Reads the sensor values from the BME280 sensor.
+ * 
+ * This function reads temperature, pressure, altitude, and humidity
+ * values from the BME280 sensor.
+ */
 void BME280::readBME280Values() {
   temperature = bme.readTemperature();
   pressure = bme.readPressure() / 100.0F;
@@ -28,22 +51,48 @@ void BME280::readBME280Values() {
   humidity = bme.readHumidity();
 }
 
+/**
+ * @brief Gets the temperature value.
+ * 
+ * @return The temperature value.
+ */
 float BME280::getTemperature() {
   return temperature;
 }
 
+/**
+ * @brief Gets the pressure value.
+ * 
+ * @return The pressure value.
+ */
 float BME280::getPressure() {
   return pressure;
 }
 
+/**
+ * @brief Gets the altitude value.
+ * 
+ * @return The altitude value.
+ */
 float BME280::getAltitude() {
   return altitude;
 }
 
+/**
+ * @brief Gets the humidity value.
+ * 
+ * @return The humidity value.
+ */
 float BME280::getHumidity() {
   return humidity;
 }
 
+/**
+ * @brief Prints the BME280 sensor data.
+ * 
+ * This function prints the temperature, pressure, altitude, and humidity
+ * values obtained from the BME280 sensor.
+ */
 void BME280::printBME280Data() {
   Serial.println(SEPARATOR);
   Serial.print(TEMPERATURE);

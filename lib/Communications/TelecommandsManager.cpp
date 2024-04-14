@@ -117,8 +117,10 @@ void TelecommandsManager::processMode5(JsonObject data) {
         return;
     }
 
-    String minY = data["minY"];
-    String maxY = data["maxY"];
+    String minYLabel = data["minY"];
+    String maxYLabel = data["maxY"];
+    double minYValue = data["minY"];
+    double maxYValue = data["maxY"];
     String receivedReading = data["reading"];
 
     if (!data["minY"].is<String>() || 
@@ -127,8 +129,10 @@ void TelecommandsManager::processMode5(JsonObject data) {
         Serial.println("Error: Invalid mode 5 data.");
         return;
     }
-    minYLimitLabel = minY;
-    maxYLimitLabel = maxY;
+    minYLimitLabel = minYLabel;
+    maxYLimitLabel = maxYLabel;
+    minYLimitValue = minYValue;
+    maxYLimitValue = maxYValue;
     receivedReading.toUpperCase();
     for (const auto& item : TelecommandsManager::readings) {
         if (item.label.equals(receivedReading)) {

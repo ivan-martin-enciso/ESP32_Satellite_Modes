@@ -9,6 +9,8 @@
 extern volatile bool startMode5;
 extern String minYLimitLabel;
 extern String maxYLimitLabel;
+extern double minYLimitValue;
+extern double maxYLimitValue;
 extern String reading;
 class ChartDisplay {
 public:

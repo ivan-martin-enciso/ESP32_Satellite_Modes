@@ -9,8 +9,10 @@
 
 // Definitions 
 volatile bool startMode5 = false;
-String minYLimitLabel = "0";
-String maxYLimitLabel = "100";
+String minYLimitLabel = "20";
+String maxYLimitLabel = "40";
+double minYLimitValue = 20.0;
+double maxYLimitValue = 40.0;
 String reading = "TEMPERATURE";
 const byte oledAddress = 0x3C;
 
@@ -21,6 +23,7 @@ void ChartDisplay::setChartLabels(){
   maxYLimitLabel.toCharArray(charArray2, sizeof(charArray2));
   chartDisplay.setYLimitLabels(charArray1, charArray2);    //Setting Y axis labels
   chartDisplay.setYLabelsVisible(true);
+  chartDisplay.setYLimits(minYLimitValue, maxYLimitValue);             //Ymin = 0 and Ymax = 100
 }
 
 ChartDisplay::ChartDisplay() : chartDisplay(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET){}
@@ -46,7 +49,6 @@ void ChartDisplay::initializeChartDisplay() {
     chartDisplay.setChartCoordinates(0, 28);      //Chart lower left coordinates (X, Y)
     chartDisplay.setChartWidthAndHeight(123, 26); //Chart width = 123 and height = 60
     chartDisplay.setXIncrement(5);                //Distance between Y points will be 5px
-    chartDisplay.setYLimits(0, 100);             //Ymin = 0 and Ymax = 100
     setChartLabels();
     chartDisplay.setAxisDivisionsInc(12, 6);    //Each 12 px a division will be painted in X axis and each 6px in Y axis
     chartDisplay.setPlotMode(SINGLE_PLOT_MODE); //Set single plot mode
