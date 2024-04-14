@@ -1,9 +1,15 @@
 #include "TelecommandsManager.h"
 
-int volatile nextDefaultMode = 0;
-int volatile mode5Function = 0;
+/**
+ * @file TelecommandsManager.cpp
+ * @brief Implementation class for the handling Telecommands.
+ * @author Ivan Martin Enciso 
+ */
 
-typedef void (TelecommandsManager::*TelecommandFunction)(JsonObject);
+int volatile nextDefaultMode = 0;                                            ///< The next default mode.
+int volatile mode5Function = 1;                                              ///< Mode 5 function set int Utils.cpp by readMode5Data()
+
+typedef void (TelecommandsManager::*TelecommandFunction)(JsonObject);        ///<Array to store mode-specific processing functions used in reflection.
 TelecommandFunction telecommandFunction[] = {
     &TelecommandsManager::processMode0,
     &TelecommandsManager::processMode1,
@@ -13,10 +19,30 @@ TelecommandFunction telecommandFunction[] = {
     &TelecommandsManager::processMode5
 };
 
+/**
+ * @brief Checsk if a mode is within the valid range.
+ * 
+ * @param mode The mode to check.
+ * 
+ * @return True if the mode is within the range [0, 5], else false.
+ */
 bool isModeInRange(int mode){
     return mode >= 0 && mode <= 5;
 }
 
+/**
+ * @brief Process a the telecommand received of WiFi or LoRa as a String.
+ * 
+ * @details The function converts the received string into a JSON document and extracts the corresponding values.
+ *          First it checks if the the cadse_id is equal to 16, then it process the type being (telecommand or setDefaultMode)
+ *          If the mode is equal to the current mode it extracts the Data from the JSON and call for the given mode process function. 
+ *          If the mode is different to the current mode it calls the buzzer to beep the number of modes and returns the mode to change. 
+ *          If an error occurs it always returns -1.
+ * 
+ * @param payload The String payload containing the telecommand data.
+ * @param currentMode The current mode.
+ * @return The mode processed or error -1.
+ */
 int TelecommandsManager::processTelecommand(String payload, int currentMode) {
 
     JsonDocument doc; 
@@ -44,6 +70,7 @@ int TelecommandsManager::processTelecommand(String payload, int currentMode) {
             nextDefaultMode = newDefaultMode;
             return -2;
         }
+
         if(type.equals("telecommand")){
             if(mode == currentMode){
                 JsonObject data = doc["data"];
@@ -60,14 +87,32 @@ int TelecommandsManager::processTelecommand(String payload, int currentMode) {
     return -1;
 }
 
-void TelecommandsManager::processMode0(JsonObject data) {
-    // Process mode 0
-}
+/**
+ * @brief Process data for mode 0.
+ * 
+ * @details This function process data specific to mode 0. Currently not implemented
+ * 
+ * @param data The JSON object containing mode 0 data.
+ */
+void TelecommandsManager::processMode0(JsonObject data) {}
 
-void TelecommandsManager::processMode1(JsonObject data) {
-    // Process mode 1
-}
+/**
+ * @brief Process data for mode 1.
+ * 
+ * @details This function process data specific to mode 1. Currently not implemented
+ * 
+ * @param data The JSON object containing mode 1 data.
+ */
+void TelecommandsManager::processMode1(JsonObject data) {}
 
+/**
+ * @brief Process data for mode 2.
+ * 
+ * @details This function process data specific to mode 2. 
+ *          Checks if tempLower and tempUpper are valid and stores the data on the persistent memory. 
+ * 
+ * @param data The JSON object containing mode 2 data.
+ */
 void TelecommandsManager::processMode2(JsonObject data) {
     if (!data.containsKey("tempLower") || !data.containsKey("tempUpper")) {
         Serial.println("Error: Missing temperature thresholds in received data.");
@@ -85,10 +130,23 @@ void TelecommandsManager::processMode2(JsonObject data) {
     storageManager.storeTemperatureDefaultValues(lowerThreshold, upperThreshold);
 }
 
-void TelecommandsManager::processMode3(JsonObject data) {
-    // Process mode 3
-}
+/**
+ * @brief Process data for mode 3.
+ * 
+ * @details This function process data specific to mode 3. Currently not implemented
+ * 
+ * @param data The JSON object containing mode 3 data.
+ */
+void TelecommandsManager::processMode3(JsonObject data) {}
 
+/**
+ * @brief Process data for mode 4.
+ * 
+ * @details This function process data specific to mode 4. 
+ *          Checks if defLdrT1, defLdrT2 and defLdrT3 are valid and stores the data on the persistent memory. 
+ * 
+ * @param data The JSON object containing mode 4 data.
+ */
 void TelecommandsManager::processMode4(JsonObject data) {
     if (!data.containsKey("defLdrT1") || !data.containsKey("defLdrT2") || !data.containsKey("defLdrT3")) {
         Serial.println("Error: Missing ldr thresholds in received data.");
@@ -111,6 +169,16 @@ void TelecommandsManager::processMode4(JsonObject data) {
     storageManager.storeLdrDefaultValues(defaultLdrThreshold1, defaultLdrThreshold2, defaultLdrThreshold3);
 }
 
+/**
+ * @brief Process data for mode 5.
+ * 
+ * @details This function process data specific to mode 5. 
+ *          Checks if minY, maxY and reading are valid.
+ *          Then it checks if the reading is on the Readings struct and fetches the proper Label and Function, which are
+ *          then updated in the global variables.  
+ * 
+ * @param data The JSON object containing mode 5 data.
+ */
 void TelecommandsManager::processMode5(JsonObject data) {
      if (!data.containsKey("minY") || !data.containsKey("maxY") || !data.containsKey("reading")) {
         Serial.println("Error: Missing mode 5 data in received data.");

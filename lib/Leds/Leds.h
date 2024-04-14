@@ -4,15 +4,23 @@
 #include <Arduino.h>
 #include "Strings.h"
 
-extern byte greenLed;
-extern byte yellowLed; 
-extern byte redLed;
+/**
+ * @file Leds.h
+ * @brief Header class for the LEDs control.
+ * @author Ivan Martin Enciso 
+ */
 
-//Single Led struct
+extern byte greenLed;         ///< Pin number for the green LED.
+extern byte yellowLed;        ///< Pin number for the yellow LED.
+extern byte redLed;           ///< Pin number for the red LED.
+
+/**
+ * @brief Struct for single LED control.
+ */
 struct Led {
-  byte ledPin;
-  int ledFrequency;
-  byte ledChannel;
+  byte ledPin;            ///< Pin number of the LED.
+  int ledFrequency;       ///< Frequency of the LED.
+  byte ledChannel;        ///< Channel of the LED.
 
   void initialize();
   void turnOn();
@@ -20,7 +28,7 @@ struct Led {
   void fade(int dutyCycle);
 };
 
-// Led Class Controller
+
 class LedController {
 public:
   LedController(byte ledCount);
@@ -35,9 +43,10 @@ public:
   void blink(byte ledIndex, byte times);
 
 private:
-  byte ledCount;
-  Led* leds;
+  byte ledCount;                                ///< The number of LEDs controlled by the LedController.
+  Led* leds;                                    ///< Array of LEDs controlled by the LedController.
 };
 
-extern LedController ledController;             // Instance of Leds Controller class
+extern LedController ledController;             ///< Global instance of the Leds controller class.
+
 #endif

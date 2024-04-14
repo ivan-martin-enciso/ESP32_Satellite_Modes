@@ -1,7 +1,13 @@
 #include "Melodies.h"
 #include <Arduino.h>
 
-
+/**
+ * @brief Function that plays a melody using a buzzer.
+ * @author Felix Roland Steinkohl
+ * @param melody An array representing the melody to be played. 
+ * @param array_length The length of the melody array.
+ * @param buzzer_channel The channel used for the buzzer.
+ */
 void play_melody(const int *melody, int array_length, int buzzer_channel){
   // calculate whole note duration
   int tempo = melody[0];

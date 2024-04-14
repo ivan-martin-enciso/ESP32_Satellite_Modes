@@ -2,7 +2,17 @@
 #include <Arduino.h>
 #include <Utils.h>
 
+/**
+ * @file Mode4.cpp
+ * @brief Implementation class for Mode 4.
+ * @note  See README file for explanation of the mode. 
+ * @author Ivan Martin Enciso 
+ */
 
+/**
+ * @brief Prints the Ldr values on the Serial.
+ * @note  Only used for testing purposes. 
+ */
 void printLdrValues(int ldrValue) {
   Serial.print(LDR);
   Serial.println(ldrValue);
@@ -14,6 +24,9 @@ void printLdrValues(int ldrValue) {
   Serial.println(ldrThreshold3);
 }
 
+/**
+ * @brief Displays the Ldr values on the OLED.
+ */
 void displayLdrValues(int ldrValue) {
   String firstLine = LDR + String(ldrValue) + SPACE + THS1  + String(ldrThreshold1);
   lcdDisplay.printInDisplay(firstLine, 10, 0, true);

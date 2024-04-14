@@ -5,6 +5,12 @@
 */
 #include "Utils.h"
 
+/**
+ * @file Melodies.h
+ * @brief Header file for playing the melodies.
+ * @author Felix Roland Steinkohl
+ */
+
 void play_melody(const int *melody, int array_length, int buzzer_channel);
 
 

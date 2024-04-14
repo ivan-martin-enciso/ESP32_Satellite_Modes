@@ -18,8 +18,8 @@ BME280::~BME280() {}
 /**
  * @brief Initializes the BME280 sensor.
  * 
- * This function initializes the BME280 sensor using Wire.h libray and the sensor address 0x76.
- * If errors occurs it is printed in the serial along with the sensor id/
+ * @details Function initializes the BME280 sensor using Wire.h libray and the sensor address 0x76. 
+ *          If an error occurs it is printed in the serial along with the sensor id.
  */
 void BME280::initializeBME280() {
   Serial.print(INITIALIZE_BME280);
@@ -41,8 +41,8 @@ void BME280::initializeBME280() {
 /**
  * @brief Reads the sensor values from the BME280 sensor.
  * 
- * This function reads temperature, pressure, altitude, and humidity
- * values from the BME280 sensor.
+ * @details Function reads temperature, pressure, altitude, and humidity values from the BME280 sensor.
+ *          For the altitude reading, sea level pressure is considered as (1013.25). 
  */
 void BME280::readBME280Values() {
   temperature = bme.readTemperature();
@@ -54,7 +54,7 @@ void BME280::readBME280Values() {
 /**
  * @brief Gets the temperature value.
  * 
- * @return The temperature value.
+ * @return The temperature value in °C.
  */
 float BME280::getTemperature() {
   return temperature;
@@ -63,7 +63,7 @@ float BME280::getTemperature() {
 /**
  * @brief Gets the pressure value.
  * 
- * @return The pressure value.
+ * @return The pressure value in hPa.
  */
 float BME280::getPressure() {
   return pressure;
@@ -72,7 +72,7 @@ float BME280::getPressure() {
 /**
  * @brief Gets the altitude value.
  * 
- * @return The altitude value.
+ * @return The altitude value in m.
  */
 float BME280::getAltitude() {
   return altitude;
@@ -81,7 +81,7 @@ float BME280::getAltitude() {
 /**
  * @brief Gets the humidity value.
  * 
- * @return The humidity value.
+ * @return The humidity value in %.
  */
 float BME280::getHumidity() {
   return humidity;
@@ -90,8 +90,8 @@ float BME280::getHumidity() {
 /**
  * @brief Prints the BME280 sensor data.
  * 
- * This function prints the temperature, pressure, altitude, and humidity
- * values obtained from the BME280 sensor.
+ * @details Function prints in the serial the temperature, pressure, altitude, and humidity
+ *          values obtained from the BME280 sensor.
  */
 void BME280::printBME280Data() {
   Serial.println(SEPARATOR);

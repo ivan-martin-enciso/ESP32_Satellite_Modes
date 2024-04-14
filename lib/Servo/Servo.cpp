@@ -1,12 +1,27 @@
 #include "Servo.h"
 
-int finalServoPosition = 180;
-int initialServoPosition = 0;
+/**
+ * @file Servo.cpp
+ * @brief Implementation class for controlling the servo.
+ * @author Ivan Martin Enciso 
+ */
 
+int finalServoPosition = 180;                       ///< Servo final position.
+int initialServoPosition = 0;                       ///< Servo initial position.
+
+/**
+ * @brief Constructor for ServoController class.
+ */
 ServoController::ServoController() : sg90() {}
 
+/**
+ * @brief Destructor for ServoController class.
+ */
 ServoController::~ServoController() {}
 
+/**
+ * @brief Test function to check the servo range (90 degrees to -90 degrees).
+ */
 void ServoController::testServo() {
     // Rotation from 0 to 180°.
     for (int pos = initialServoPosition; pos <= finalServoPosition; pos += 1) {
@@ -22,14 +37,23 @@ void ServoController::testServo() {
     delay(100);
 }
 
+/**
+ * @brief Initializes the servo.
+ * @details Uses 50 Hz frequency and Minimum and maximum PWM (in µs) to go from -90° to 90°.
+ *          It also calls the testServo function. 
+ */
 void ServoController::initializeServo() {
     Serial.print(INITIALIZE_SERVO);
-    sg90.setPeriodHertz(50);                // PWM frequency for SG90
-    sg90.attach(PIN_SG90, 400, 2350);       // Minimum and maximum pulse width (in µs) to go from 0° to 180°.
+    sg90.setPeriodHertz(50);               
+    sg90.attach(PIN_SG90, 400, 2350);       
     testServo();
     Serial.println(COMPLETE);
 }
-
+/**
+ * @brief Sets the position of the servo.
+ * 
+ * @param position The desired position of the servo motor.
+ */
 void ServoController::setServoPosition(int position) {
     position = constrain(position, initialServoPosition, finalServoPosition);
     int currentServoPosition = getServoPosition();
@@ -49,6 +73,11 @@ void ServoController::setServoPosition(int position) {
     }
 }
 
+/**
+ * @brief Retrieves the current position of the servo.
+ * 
+ * @return The current position of the servo.
+ */
 int ServoController::getServoPosition() {
     return sg90.read();
 }

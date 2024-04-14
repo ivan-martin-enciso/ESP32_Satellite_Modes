@@ -6,6 +6,11 @@
 #include <Adafruit_SSD1306.h>
 #include "Strings.h"
 
+/**
+ * @file Display.h
+ * @brief Header class for the OLED Display. 
+ * @author Ivan Martin Enciso 
+ */
 class Display {
 public:
   Display();
@@ -25,10 +30,10 @@ public:
   void promptWiFi();
   int getTextBounds(String text);
 private:
-  Adafruit_SSD1306 display;
-  String currentModeString;
+  Adafruit_SSD1306 display;               ///< OLED display object.
+  String currentModeString;               ///< String for the current mode.
 };
 
-extern Display lcdDisplay; 
+extern Display lcdDisplay;                ///< Global instance for Display class.
 
 #endif

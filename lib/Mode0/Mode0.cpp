@@ -1,10 +1,13 @@
-/* Mode 0
-  Idle Mode: Waiting for commands. 
- */
 #include "Mode0.h"
 #include <Arduino.h>
 #include <Utils.h>
 
+/**
+ * @file Mode0.cpp
+ * @brief Implementation class for Mode 0.
+ * @note  See README file for explanation of the mode 
+ * @author Ivan Martin Enciso 
+ */
 void mode0(){
   try{
     delay(100);

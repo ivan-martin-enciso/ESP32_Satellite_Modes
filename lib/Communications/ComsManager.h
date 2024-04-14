@@ -12,12 +12,17 @@
 #include "Strings.h"
 #include "arduino_secrets.h"
 
-// ----- Telemetry & Telecommand-----
-extern volatile bool sendTelemetry;
-extern String receivedPayloadWiFi;
-extern String receivedPayloadLoRa;  
-extern volatile bool receivedLora; 
-extern volatile bool receivedWifi; 
+/**
+ * @file ComsManager.h
+ * @brief Header class for handling Communications. 
+ * @author Ivan Martin Enciso 
+ */
+
+extern volatile bool sendTelemetry; ///< Flag indicating if telemetry data should be sent. 
+extern String receivedPayloadWiFi;  ///< String where information over WiFi is received.
+extern String receivedPayloadLoRa;  ///< String where information over LoRa is received.
+extern volatile bool receivedLora;  ///< Flag indicating if a message has been received over LoRa.
+extern volatile bool receivedWifi;  ///< Flag indicating if a message has been received over WiFi.
 
 
 class ComsManager {
@@ -36,11 +41,11 @@ public:
     void serialWifiComunication();
     void receivePackageUsingLora();
 private:
-    float loraRSSI = 0;
-    float loraSNR = 0;
-    float loraFrequencyError = 0;
+    float loraRSSI = 0;              ///< LoRa RSSI private property.
+    float loraSNR = 0;               ///< LoRa SNR private property.
+    float loraFrequencyError = 0;    ///< LoRa frequency error private property.
 };
 
-extern ComsManager comsManager;
+extern ComsManager comsManager;      ///< Global instance for Communications Manager class.
 
 #endif

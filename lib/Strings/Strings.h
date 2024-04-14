@@ -1,6 +1,11 @@
 #ifndef STRINGS_H
 #define STRINGS_H
 #include "Arduino.h"
+/**
+ * @file Strings.h
+ * @brief Header class for common strings used throughout the project.
+ * @author Ivan Martin Enciso 
+ */
 
 // General
 const char SEPARATOR[] = "--------------------------";
@@ -42,6 +47,7 @@ const char CONNECTING_TO[] = "Connecting to: ";
 const char IP_ADDRESS[] = "IP Address: ";
 const char RSSI[] = "WiFi RSSI: ";
 const char DB[] = " dB";
+const char HZ[] = " Hz";
 const char NEW_CLIENT[] = "New client: ";
 const char WIFI_NOT_CONNECTED[] = "Wifi not connected";
 const char EDUROAM[] = "eduroam";
@@ -55,9 +61,15 @@ const char RECEIVED_DATA[] = "Received data: ";
 const char INITIALIZE_LORA[] = "LoRa initialization: ";
 const char LORA_LISTENING[] = "[SX1276] Starting to listen ... ";
 const char RECEIVED_LORA[] = "Received package over LoRa";
+const char LORA_CRC_ERROR[] = "[SX1276] CRC error!";
+const char LORA_ERROR[] = "[SX1276] Failed, code ";
 
 // MQTT
 const char INITIALIZE_MQTT[] = "MQTT initialization: ";
+const char MQTT_ATTEMPT[] = "Attempting MQTT connection to ";
+const char MQTT_WAIT[] = " ... ";
+const char MQTT_CLIENT_ID[] = "Done using client ID ";
+const char MQTT_FAILED[] = "failed, rc=";
 
 // Satellite modes
 const char MODE[] = "Mode: ";

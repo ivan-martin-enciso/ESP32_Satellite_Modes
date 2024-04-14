@@ -29,7 +29,7 @@ A configurable timer is implemented. The timer can be started using the touchpad
 ## Mode 4 
 Light intensity is represented in using the LEDs of the board where each of them is lit up if a certain threshold is met. There are three configurable thresholds for this mode. 
 
-# Mode 5
+## Mode 5
 A graphical representation of all the sensors reading is implemented using a customizable graphics library. The readings are configurable via telecommand. 
 
 ## Usage
@@ -37,13 +37,15 @@ A graphical representation of all the sensors reading is implemented using a cus
 For Telecommands the topic is: cadse/2023/broadcast
 
 Json used to set Default mode in persistent memory:
+```JSON
 {
   "type": "setDefaultMode",
   "cadse_id": 16,
   "mode": 0
 }
-
+```
 Json used to change between modes and set thresholds:
+```JSON
 {
   "type": "telecommand",
   "cadse_id": 16,
@@ -56,8 +58,9 @@ Json used to change between modes and set thresholds:
     "defLdrT3": 3100
   }
 }
-
-Json used to change readings in mode 5
+```
+Json used to change readings in mode 5:
+```JSON
 {
   "type": "telecommand",
   "cadse_id": 16,
@@ -68,9 +71,17 @@ Json used to change readings in mode 5
     "reading": "Ldr"
   }
 }
+```
 The possible readings are:
 - Temperature
-- Ldr
+- LDR
 - Humidity
 - Altitude
 - Pressure
+
+Recommended thresholds for each reading:
+- Temperature (0 - 40)
+- LDR         (0 - 5000)
+- Humidity    (0 - 100)
+- Altitude    (-200 - 1000)
+- Pressure    (0 - 2000)

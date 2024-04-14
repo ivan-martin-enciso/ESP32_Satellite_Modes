@@ -1,30 +1,36 @@
 #include "ComsManager.h"
 
-// Definitions 
+/**
+ * @file ComsManager.cpp
+ * @brief Implementation class for handling MQTT, WiFi, Serial and LoRa communications. 
+ * @author Ivan Martin Enciso 
+ */
 
 // ----- Wifi -----
-const String wifiSSID        = SECRET_WIFI_SSID;
-const char wifiPassword[]    = SECRET_WIFI_PASSWORD;
-const char wifiAnonymousId[] = SECRET_WIFI_ANONYMOUSID;
-const char wifiEduroamId[]   = SECRET_WIFI_EDUROAMID;
-const int serialPort              = 23; 
-const int maximumServerClients    = 1;
-volatile bool receivedWifi = false; 
-WiFiServer server(serialPort);
-WiFiClient serverClients[maximumServerClients];
-WiFiClientSecure wifiClient;
+const String wifiSSID        = SECRET_WIFI_SSID;            ///< WiFi SSID.
+const char wifiPassword[]    = SECRET_WIFI_PASSWORD;        ///< WiFi password.
+const char wifiAnonymousId[] = SECRET_WIFI_ANONYMOUSID;     ///< WiFi anonymous ID.
+const char wifiEduroamId[]   = SECRET_WIFI_EDUROAMID;       ///< WiFi eduroam ID.
+const int serialPort              = 23;                     ///< Serial port number.
+const int maximumServerClients    = 1;                      ///< Maximum number of server clients.
+volatile bool receivedWifi = false;                         ///< Flag indicating if WiFi message has been received.
+
+WiFiServer server(serialPort);                              ///< WiFi server object.
+WiFiClient serverClients[maximumServerClients];             ///< Array of WiFi clients objects.
+WiFiClientSecure wifiClient;                                ///< Secure WiFi client object.
+
 // ----- MQTT -----
-const char   mqttBroker[]    = SECRET_MQTT_BROKER;
-const  int   mqttPort        = SECRET_MQTT_PORT;
-const char   mqttUser[]      = SECRET_MQTT_USER;
-const char   mqttPassword[]  = SECRET_MQTT_PASSWORD;
-const String mqttPrefix      = SECRET_MQTT_PREFIX;
-const int    mqttYear        = SECRET_MQTT_YEAR;
-const byte   mqttBoardId     = SECRET_MQTT_BOARDID;
-String mqttPublish;  
-String mqttSubscribe; 
-String mqttTopic;
-PubSubClient mqttClient(wifiClient);
+const char   mqttBroker[]    = SECRET_MQTT_BROKER;          ///< MQTT broker.
+const  int   mqttPort        = SECRET_MQTT_PORT;            ///< MQTT port.
+const char   mqttUser[]      = SECRET_MQTT_USER;            ///< MQTT user.
+const char   mqttPassword[]  = SECRET_MQTT_PASSWORD;        ///< MQTT password.
+const String mqttPrefix      = SECRET_MQTT_PREFIX;          ///< MQTT prefix.
+const int    mqttYear        = SECRET_MQTT_YEAR;            ///< MQTT year.
+const byte   mqttBoardId     = SECRET_MQTT_BOARDID;         ///< MQTT board ID.
+String mqttPublish;                                         ///< MQTT publish string.
+String mqttSubscribe;                                       ///< MQTT subscribe string.
+String mqttTopic;                                           ///< MQTT topic.
+PubSubClient mqttClient(wifiClient);                        ///< MQTT client object.
 
 // Encryption using https://letsencrypt.org/certs/lets-encrypt-r3.pem
 const char tlsPublicCertificate[] = ("\
@@ -59,44 +65,53 @@ MldlTTKB3zhThV1+XWYp6rjd5JW1zbVWEkLNxE7GJThEUG3szgBVGP7pSWTUTsqX\n\
 nLRbwHOoq7hHwg==\n\
 -----END CERTIFICATE-----\n");
 
-
 // ----- LoRa -----
-static const int loraFrequency = 868.0, loraCSPin = 38, loraRSTPin = 48, loraIrqPin = 47;
-SX1276 radioClient = new Module(loraCSPin, loraIrqPin, loraRSTPin, RADIOLIB_NC); // GPIO Pins are not connected on CADSE board!
-volatile bool receivedLora = false; // flag to indicate that a packet was received
+static const int loraFrequency = 868.0, loraCSPin = 38, loraRSTPin = 48, loraIrqPin = 47;   ///< LoRa frequency, CS pin, RST pin, and IRQ pin.
+SX1276 radioClient = new Module(loraCSPin, loraIrqPin, loraRSTPin, RADIOLIB_NC);            ///< LoRa radio client object.
+volatile bool receivedLora = false;                                                         ///< Flag indicating if LoRa message has been received.
 
-const char* welcomeMsg = SERIAL_WELCOME;
-const char* promptMsg = PROMPT_USER;
-// Calculate the length of the welcome string and prompt message
-size_t welcomeLen = strlen(welcomeMsg);
-size_t promptLen = strlen(promptMsg);
-const size_t incomingDatabufferSize = 128; 
-char incomingDataBuffer[incomingDatabufferSize];
-int incomingDataIndex = 0;
+// ----- Telnet to Serial Communication -----
+const char* welcomeMsg = SERIAL_WELCOME;            ///< Char array with welcome message.
+const char* promptMsg = PROMPT_USER;                ///< Char array with prompt message.
+size_t welcomeLen = strlen(welcomeMsg);             ///< Length of welcome message.
+size_t promptLen = strlen(promptMsg);               ///< Length of prompt message.
+const size_t incomingDatabufferSize = 128;          ///< Size of incoming data buffer.
+char incomingDataBuffer[incomingDatabufferSize];    ///< Incoming data buffer.
+int incomingDataIndex = 0;                          ///< Index of incoming data.
 
 // ----- Telemetry & Telecommand-----
-volatile bool sendTelemetry;
-String receivedPayloadWiFi;
-String receivedPayloadLoRa;  
+volatile bool sendTelemetry;                        ///< Flag indicating if telemetry data should be sent.
+String receivedPayloadWiFi;                         ///< String where information over WiFi is received.
+String receivedPayloadLoRa;                         ///< String where information over LoRa is received.
 
-ComsManager::ComsManager() {}
 
-ComsManager::~ComsManager() {}
+// ----- Private functions -----
 
+/**
+ * @brief Prints the connected IP address to serial.
+ */
 void printIp(){
     Serial.print(IP_ADDRESS);
     Serial.print(WiFi.localIP());
     Serial.println(COMPLETE);
 }
 
-/*
- * Initialize Wi-Fi connection
+/**
+ * @brief Checks if the current wifiSSID is Eduroam.
+ * 
+ * @return True if wifiSSID is Eduroam, else false.
  */
-
 bool IsEduroamConnection(){
     return wifiSSID.equals(EDUROAM);
 }
 
+/**
+ * @brief Initializes the Wi-Fi connection.
+ * 
+ * @details Function to connect to a normal Wi-Fi network using the credentials in arduino_secrets.h
+ *          (wifiSSID and wifiPassword). It prints status messages to Serial during the connection process.
+ *          Finally it prints the ip. 
+ */
 void initializeWifi() {
     delay(10);
     Serial.print(INITIALIZE_WIFI);
@@ -113,8 +128,12 @@ void initializeWifi() {
     printIp();
 }
 
-/*
- * Initialize Wi-Fi connection for eduroam
+/**
+ * @brief Initializes Wi-Fi connection to Eduroam.
+ * 
+ * @details Function to connect to the Eduroam Wi-Fi network using the credentials in arduino_secrets.h
+ *          (wifiAnonymousId, wifiEduroamId, and wifiPassword). It prints status messages to Serial during the connection process.
+ *          Finally it prints the ip. 
  */
 void initializeEduroamWifi() {
   delay(10);
@@ -136,18 +155,28 @@ void initializeEduroamWifi() {
   printIp();
 }
 
-// this function is called when a complete packet
-// is received by the module
-// IMPORTANT: this function MUST be 'void' type
-//            and MUST NOT have any arguments!
+/**
+ * @brief Sets a flag to true when a packet is received through LoRa. 
+ * 
+ * @details Function is called when a complete packet is received by the LoRa module. 
+ *          IMPORTANT: this function MUST be 'void' type and MUST NOT have any arguments!
+ */
 #if defined(ESP8266) || defined(ESP32)
   ICACHE_RAM_ATTR
 #endif
 void setLoraRxFlag(void) {
-  receivedLora = true;    // we got a packet, set the flag
+  receivedLora = true;    
 }
+
+/**
+ * @brief Initializes the LoRa module.
+ * 
+ * @details Initializes the SX1278 LoRa module with a frequency of 868.0  Hz. 
+ *          If initialization fails, the function enters an infinite loop. 
+ *          After initialization, callback function setLoraRxFlag is set when a package is received. 
+ *          Finally it starts listening for LoRa packets.
+ */
 void initializeLora() {
-    // initialize SX1278 with default settings
     Serial.print(INITIALIZE_LORA);
     int state = radioClient.begin(loraFrequency);
     if (state != RADIOLIB_ERR_NONE) {
@@ -156,11 +185,8 @@ void initializeLora() {
         while (true);
     } 
 
-    // set the function that will be called
-    // when new packet is received
     radioClient.setPacketReceivedAction(setLoraRxFlag);
 
-    // start listening for LoRa packets
     Serial.print(LORA_LISTENING);
     state = radioClient.startReceive();
 
@@ -172,8 +198,16 @@ void initializeLora() {
         while (true);
     }
 }
-/*
- * Callback function for MQTT subscription handler
+
+/**
+ * @brief Callback function for handling MQTT subscription to the defined topic in the initialization.
+ * 
+ * @param topic The topic of the received MQTT message.
+ * @param payload The payload of the received MQTT message.
+ * @param length The length of the payload.
+ * 
+ * @details Function handles the reception of MQTT messages,
+ *          Converts the received payload to a string and sets a flag to indicate that a message has been received.
  */
 void receivePackageUsignMqtt(char* topic, byte *payload, unsigned int length) {
     char str[length + 1];
@@ -182,79 +216,146 @@ void receivePackageUsignMqtt(char* topic, byte *payload, unsigned int length) {
     receivedPayloadWiFi = String(str);
     receivedWifi = true; 
 }
-/*
- * Initialize MQTT connection
+
+/**
+ * @brief Initializes the MQTT connection.
+ * 
+ * @details Attempts to establish a connection to the MQTT broker defined in arduino_secrets
+ *          printing the process in the Serial. 
+ *          If the connection attempt fails, the function retries every 5 seconds 
+ *          until a connection is established.
  */
 void initializeMQTT() {
     Serial.print(INITIALIZE_MQTT);
     wifiClient.setCACert(tlsPublicCertificate);
-    //wifiClient.setCertificate(tlsClientCertificate);
-    //wifiClient.setPrivateKey(tlsClientPrivateKey);
 
-    // Generate board-specific MQTT client ID
     String mqttClientId = mqttPrefix + "-" + String(mqttBoardId);
 
-    // Loop until (re)connected
     while (!mqttClient.connected()) {
-        Serial.print("Attempting MQTT connection to ");
+        Serial.print(MQTT_ATTEMPT);
         Serial.print(mqttBroker);
-        Serial.print(" ... ");
-        // Attempt to connect
+        Serial.println(MQTT_WAIT);
+        
         if (mqttClient.connect(mqttClientId.c_str(), mqttUser, mqttPassword)) {
-        Serial.print("Done using client ID ");
-        Serial.print(mqttClientId);
-        mqttClient.subscribe(mqttSubscribe.c_str());
+            Serial.print(MQTT_CLIENT_ID);
+            Serial.println(mqttClientId);
+            mqttClient.subscribe(mqttSubscribe.c_str());
         } else {
-        Serial.print("failed, rc=");
-        Serial.print(mqttClient.state());
-        delay(5000);
+            Serial.print(MQTT_FAILED);
+            Serial.print(mqttClient.state());
+            delay(5000);
         }
     }
     Serial.println(COMPLETE);
 }
 
+/**
+ * @brief Constructor for the ComsManager class.
+ */
+ComsManager::ComsManager() {}
+
+/**
+ * @brief Destructor for the ComsManager class.
+ */
+ComsManager::~ComsManager() {}
+
+/**
+ * @brief Initializes all communications.
+ * 
+ * @details Creates MQTT topics ("cadse/2023/broadcast" and "cadse/2023/16/").
+ *          Initializes Wi-Fi or eduroam connection.
+ *          Initializes LoRa communication.
+ *          Finally it sets up MQTT server and the callback function for receiving packages via MQTT subscription, and initializes MQTT.
+ */
 void ComsManager::initializeComs() {
-    // Generate board-specific MQTT topics using the pattern [prefix]/[year]/[ID]/[variable]
     mqttTopic = mqttPrefix + "/" + String(mqttYear) + "/" + String(mqttBoardId) + "/" + TELEMETRY_TOPIC;
-    mqttSubscribe = TELECOMMAND_TOPIC; // Topic telecommand
-    if(IsEduroamConnection()){ initializeEduroamWifi(); }
-    else{ initializeWifi(); }
+    mqttSubscribe = TELECOMMAND_TOPIC;
+    if (IsEduroamConnection()) {
+        initializeEduroamWifi();
+    } else {
+        initializeWifi();
+    }
 
     initializeLora();
     mqttClient.setServer(mqttBroker, mqttPort);
     mqttClient.setCallback(receivePackageUsignMqtt);
-    initializeMQTT(); 
+    initializeMQTT();
 }
 
+/**
+ * @brief Gets the Wi-Fi RSSI (Received Signal Strength Indication).
+ * 
+ * @return The Wi-Fi RSSI value if connected, if it is not connected it attempt a reconnection and returns 0.
+ */
 float ComsManager::getWiFiRSSI() {
-    if (WiFi.status() == WL_CONNECTED){
+    if (WiFi.status() == WL_CONNECTED) {
         return WiFi.RSSI();
-    }
-    else{
-        if(IsEduroamConnection()){ initializeEduroamWifi(); }
-        else{ initializeWifi(); }
+    } else {
+        if (IsEduroamConnection()) {
+            initializeEduroamWifi();
+        } else {
+            initializeWifi();
+        }
     }
     return 0;
 }
+
+/**
+ * @brief Sets the LoRa RSSI (Received Signal Strength Indication).
+ */
 void ComsManager::setLoRaRSSI() {
     loraRSSI = radioClient.getRSSI();
 }
+
+/**
+ * @brief Sets the LoRa SNR (Signal-to-Noise Ratio).
+ */
 void ComsManager::setLoRaSNR() {
     loraSNR = radioClient.getSNR();
 }
+
+/**
+ * @brief Sets the LoRa frequency error.
+ */
 void ComsManager::setLoRaFreqError() {
     loraFrequencyError = radioClient.getFrequencyError();
 }
-float ComsManager::getLoRaRSSI(){
+
+/**
+ * @brief Gets the LoRa RSSI (Received Signal Strength Indication).
+ * 
+ * @return The LoRa RSSI value in dB.
+ */
+float ComsManager::getLoRaRSSI() {
     return loraRSSI;
 }
-float ComsManager::getLoRaSNR(){
+
+/**
+ * @brief Gets the LoRa SNR (Signal-to-Noise Ratio).
+ * 
+ * @return The LoRa SNR value in dB.
+ */
+float ComsManager::getLoRaSNR() {
     return loraSNR;
 }
-float ComsManager::getLoRaFreqError(){
+
+/**
+ * @brief Gets the LoRa frequency error.
+ * 
+ * @return The LoRa frequency error value in Hz.
+ */
+float ComsManager::getLoRaFreqError() {
     return loraFrequencyError;
 }
 
+/**
+ * @brief Creates the bridge for serial to WiFi communication.
+ * 
+ * @details Function that stablishes a connection to possible multiple WiFi clients between Serial and WiFi.
+ *          If success the connection is printed in the Serial. 
+ *          Using telnet, the communication between the satellite serial and WiFi is possible. 
+ *          IMPORTANT: This method is only implemented for testing purposes. Not used in proyect final deployment. 
+ */
 void ComsManager::serialWifiComunication(){
     uint8_t i;
     if (WiFi.status() == WL_CONNECTED){
@@ -312,7 +413,7 @@ void ComsManager::serialWifiComunication(){
             size_t len = Serial.available();
             uint8_t buffer[len];
             Serial.readBytes(buffer, len);
-            // push UART data to all connected telnet clients
+            // Push UART data to all connected telnet clients
             for (i = 0; i < maximumServerClients; i++){
                 if(serverClients[i] && serverClients[i].connected()){
                     serverClients[i].write(buffer, len);
@@ -330,23 +431,28 @@ void ComsManager::serialWifiComunication(){
     }
 }
 
-void ComsManager::sendTelemetryData(JsonDocument telemetryJson){
-    if(sendTelemetry){
+/**
+ * @brief Sends telemetry data over MQTT publish topic.
+ * 
+ * @param telemetryJson The JSON document containing telemetry data.
+ * 
+ * @details The function receives a JsonDocument and per Key creates a topic to publish the value. 
+ *          If the sendTelemetry flag is true, it check the MQTT conection and publishes the data. 
+ *          Finally it sets back the flag to false. 
+ */
+void ComsManager::sendTelemetryData(JsonDocument telemetryJson) {
+    if (sendTelemetry) {
         mqttClient.loop();
         if (!mqttClient.connected()) {
-            
             initializeMQTT();
         }
         Serial.println(SENDING_HOUSEKEEPING_DATA);
 
-        // Extract keys from the JSON object
         for (JsonPair keyValue : telemetryJson.as<JsonObject>()) {
-            String mqttPublish = mqttTopic + "/"; 
-            const char* key = keyValue.key().c_str(); 
+            String mqttPublish = mqttTopic + "/";
+            const char* key = keyValue.key().c_str();
             mqttPublish.concat(key);
             String jsonData = String(keyValue.value().as<String>());
-            
-            // Publish telemetry data on the constructed MQTT topic
             mqttClient.publish(mqttPublish.c_str(), jsonData.c_str());
         }
 
@@ -354,9 +460,15 @@ void ComsManager::sendTelemetryData(JsonDocument telemetryJson){
     }
 }
 
-
-void ComsManager::receivePackageUsingLora(){
-    if(receivedLora) {
+/**
+ * @brief Receives a package using LoRa communication.
+ * 
+ * @details If the receivedLora flag is true, the function reaads the data from the LoRa module and converts it to String. 
+ *          It then stores the data in a global variable and sets the flag back to false. 
+ *          If an error ocurrs it print in the Serial. 
+ */
+void ComsManager::receivePackageUsingLora() {
+    if (receivedLora) {
         receivedLora = false;
         Serial.println(RECEIVED_LORA);
         String receivedString;
@@ -368,13 +480,10 @@ void ComsManager::receivePackageUsingLora(){
             setLoRaFreqError();
 
             receivedPayloadLoRa = receivedString;
-            } else if (state == RADIOLIB_ERR_CRC_MISMATCH) {
-            // packet was received, but is malformed
-            Serial.println(F("[SX1276] CRC error!"));
-
-            } else {
-            // some other error occurred
-            Serial.print(F("[SX1276] Failed, code "));
+        } else if (state == RADIOLIB_ERR_CRC_MISMATCH) {
+            Serial.println(LORA_CRC_ERROR);
+        } else {
+            Serial.print(LORA_ERROR);
             Serial.println(state);
         }
     }

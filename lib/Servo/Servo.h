@@ -5,9 +5,15 @@
 #include "Strings.h"
 #include <ESP32Servo.h>
 
-extern int initialServoPosition;
-extern int finalServoPosition;
-#define PIN_SG90 7 
+/**
+ * @file Servo.h
+ * @brief Header class for controlling the servo.
+ * @author Ivan Martin Enciso 
+ */
+
+extern int initialServoPosition;            ///< Servo initial position
+extern int finalServoPosition;              ///< Servo final position
+#define PIN_SG90 7                          ///< Servo pin
 
 class ServoController {
 public:
@@ -19,9 +25,9 @@ public:
     void setServoPosition(int position);
     int getServoPosition();
 private:
-    Servo sg90;
+    Servo sg90;                          ///< Object for the servo. 
 };
 
-extern ServoController servoController;
+extern ServoController servoController;  ///< Global instance of the servo class.
 
 #endif

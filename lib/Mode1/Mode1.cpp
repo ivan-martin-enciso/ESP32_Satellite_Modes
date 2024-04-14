@@ -1,26 +1,36 @@
-/* Implement the mode 1 functionality here
- */
 #include "Mode1.h"
 #include <Arduino.h>
 #include <Utils.h>
 
-// Define LCD display dimensions
-const int oledStartingPoint = 0;
-const int oledHeight = 32;
-const int oledWidth = 128;
-const int threshold = 11;
+/**
+ * @file Mode1.cpp
+ * @brief Implementation class for Mode 1.
+ * @note  See README file for explanation of the mode. 
+ * @author Ivan Martin Enciso 
+ */
 
-// Define satellite symbol dimensions
-const int satelliteWidth = 8;
-const int satelliteHeight = 8;
+const int oledStartingPoint = 0;                       ///< Starting point for the display.
+const int oledHeight = 32;                             ///< Display height.
+const int oledWidth = 128;                             ///< Display width.
+const int threshold = 11;                              ///< IMU threshold.
+const int satelliteWidth = 8;                          ///< Bitmap width.
+const int satelliteHeight = 8;                         ///< Bitmap height.
 
-// Define satellite symbol bitmap
-unsigned char satelliteBitmap[satelliteWidth] = {
+unsigned char satelliteBitmap[satelliteWidth] = {      ///< Satellite symbol bitmap
   B00111100, B01111110, B11011011, B11111111, 
   B11111111, B11011011, B01111110, B00111100
 };
 
-// Mapping function to map current acceleration from the IMU into the height and width of the OLED display 
+/**
+ * @brief Maps the value from the IMU to the display.
+ * 
+ * @param value The value to map.
+ * @param inMin The minimum value of the input range. In this case the threshold. 
+ * @param inMax The maximum value of the input range. In this case the threshold. 
+ * @param outMin The minimum value of the output range. 
+ * @param outMax The maximum value of the output range.
+ * @return The mapped value.
+ */
 int mapValue(float value, float inMin, float inMax, int outMin, int outMax) {
   return (int)((value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin);
 }
