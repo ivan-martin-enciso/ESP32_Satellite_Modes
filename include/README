@@ -6,7 +6,12 @@ This project represents a scenario in which a satellite engineering model is tes
 The satellite has 5 different modes to switch to. 
 
 ## Table of Contents
-- [Mode1](#mode1)
+- [Mode 0](#mode-0)
+- [Mode 1](#mode-1)
+- [Mode 2](#mode-2)
+- [Mode 3](#mode-3)
+- [Mode 4](#mode-4)
+- [Mode 5](#mode-5)
 - [Usage](#usage)
 
 ## Mode 0
